@@ -96,6 +96,7 @@ export const verifyOtp = async (req, res) => {
         message: "OTP expired",
       });
     }
+    
 
     // 5️⃣ Verify user
     user.isVerified = true;
@@ -104,9 +105,10 @@ export const verifyOtp = async (req, res) => {
 
     await user.save();
 
-    res.status(200).json({
-      message: "OTP verified successfully",
-    });
+    res.json({
+  message: "OTP verified",
+  isOnboarded: user.isOnboarded
+});
   } catch (error) {
     res.status(500).json({
       message: "OTP verification failed",
