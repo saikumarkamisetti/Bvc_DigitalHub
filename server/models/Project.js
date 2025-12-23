@@ -32,6 +32,11 @@ const projectSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    media: {
+  type: [String], // image/video/file URLs
+  default: [],
+},
+
     likes: [{
   type: mongoose.Schema.Types.ObjectId,
   ref: "User",

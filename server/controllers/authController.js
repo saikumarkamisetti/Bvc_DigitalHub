@@ -122,10 +122,16 @@ export const verifyOtp = async (req, res) => {
     user.otpExpiry = null;
     await user.save();
 
-    res.status(200).json({
-      message: "OTP verified successfully",
-      isOnboarded: user.isOnboarded,
-    });
+    const token = jwt.sign(
+    { id: user._id },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  res.json({
+    message: "OTP verified successfully",
+    token, // ✅ IMPORTANT
+  });
   } catch (error) {
     res.status(500).json({
       message: "OTP verification failed",

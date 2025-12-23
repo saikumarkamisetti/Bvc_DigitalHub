@@ -3,9 +3,15 @@ import Project from "../models/Project.js";
 // 🔹 Create project
 export const createProject = async (req, res) => {
   try {
+    const media = req.files?.map((file) => file.path) || [];
+
     const project = await Project.create({
       user: req.user._id,
-      ...req.body,
+      title: req.body.title,
+      description: req.body.description,
+      repoLink: req.body.repoLink,
+      techStack: req.body.techStack?.split(",") || [],
+      media,
     });
 
     res.status(201).json({
@@ -13,11 +19,22 @@ export const createProject = async (req, res) => {
       project,
     });
   } catch (error) {
-    res.status(500).json({
-      message: "Project creation failed",
-    });
+    res.status(500).json({ message: "Project creation failed" });
   }
 };
+
+
+export const getProjectById = async (req, res) => {
+  const project = await Project.findById(req.params.id)
+    .populate("user", "name email department profilePic");
+
+  if (!project) {
+    return res.status(404).json({ message: "Project not found" });
+  }
+
+  res.json(project);
+};
+
 
 // 🔹 Get all projects
 export const getAllProjects = async (req, res) => {

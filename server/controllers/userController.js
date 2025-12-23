@@ -14,6 +14,46 @@ export const getMyProfile = async (req, res) => {
   }
 };
 
+
+
+export const completeOnboarding = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { department, year, rollNumber, bio, skills } = req.body;
+
+    user.department = department;
+    user.year = year;
+    user.rollNumber = rollNumber;
+    user.bio = bio;
+    user.skills = skills;
+    user.isOnboarded = true;
+
+    // ✅ PROFILE PIC FROM CLOUDINARY
+    if (req.file) {
+      user.profilePic = req.file.path; // Cloudinary URL
+    }
+
+    await user.save();
+
+    res.json({
+      message: "Onboarding completed successfully",
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Onboarding failed",
+      error: error.message,
+    });
+  }
+};
+
+
+
 // 🔹 Update profile (onboarding + edit)
 export const updateProfile = async (req, res) => {
   try {

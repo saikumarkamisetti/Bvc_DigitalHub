@@ -74,6 +74,10 @@ const userSchema = new mongoose.Schema(
     isOnboarded: {
   type: Boolean,
   default: false
+},
+profilePic: {
+  type: String,
+  default: "",
 }
 
   
