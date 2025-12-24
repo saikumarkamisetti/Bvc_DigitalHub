@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+// Pages
 import Landing from "./pages/Landing";
 import Signup from "./pages/Signup";
 import OTP from "./pages/OTP";
@@ -14,23 +15,25 @@ import Staff from "./pages/Staff";
 import Events from "./pages/Events";
 import Jobs from "./pages/Jobs";
 import Onboarding from "./pages/Onboarding";
-import ProjectDetails from "./pages/ProjectDetails";
-import EditProject from "./pages/EditProject";
-import StaffDetails from "./pages/StaffDetails";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ProjectDetails from "./pages/ProjectDetails";
+import StaffDetails from "./pages/StaffDetails";
 
+// Admin Pages
 import AdminLogin from "./admin/pages/AdminLogin";
 import AdminDashboard from "./admin/pages/AdminDashboard";
+import AdminProtectedRoute from "./admin/components/AdminProtectedRoute";
 import AdminUsers from "./admin/pages/Users";
 import AdminStaff from "./admin/pages/Staff";
-import AdminEvents from "./admin/pages/Events";
-import AdminJobs from "./admin/pages/Jobs";
+import AdminEvents from "./admin/pages/Events"; // ✅ ADD
+import AdminJobs from "./admin/pages/Jobs"; // ✅ ADD
 import UserDetails from "./admin/pages/UserDetails";
-import AdminProtectedRoute from "./admin/components/AdminProtectedRoute";
 
 function App() {
+  // ✅ SINGLE SOURCE OF TRUTH FOR THEME
   const [dark, setDark] = useState(false);
 
+  // ✅ Apply theme to <html>
   useEffect(() => {
     const html = document.documentElement;
     dark ? html.classList.add("dark") : html.classList.remove("dark");
@@ -38,21 +41,31 @@ function App() {
 
   return (
     <BrowserRouter>
+      {/* 🌙 GLOBAL THEME TOGGLE */}
       <button
         onClick={() => setDark(!dark)}
-        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg flex items-center justify-center text-xl hover:scale-110 transition-transform"
+        className="
+          fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full
+          bg-white dark:bg-slate-800
+          border border-slate-200 dark:border-slate-700
+          shadow-lg flex items-center justify-center text-xl
+        "
       >
         {dark ? "☀️" : "🌙"}
       </button>
 
+      {/* ✅ TOAST THEME SYNCED */}
       <ToastContainer position="top-center" theme={dark ? "dark" : "light"} />
 
       <Routes>
+        {/* ================= PUBLIC ================= */}
         <Route path="/" element={<Landing />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/otp" element={<OTP />} />
         <Route path="/login" element={<Login />} />
         <Route path="/onboarding" element={<Onboarding />} />
+
+        {/* ================= ADMIN ================= */}
         <Route path="/admin/login" element={<AdminLogin />} />
 
         <Route
@@ -63,6 +76,7 @@ function App() {
             </AdminProtectedRoute>
           }
         />
+
         <Route
           path="/admin/users"
           element={
@@ -71,6 +85,7 @@ function App() {
             </AdminProtectedRoute>
           }
         />
+
         <Route
           path="/admin/users/:id"
           element={
@@ -79,6 +94,7 @@ function App() {
             </AdminProtectedRoute>
           }
         />
+
         <Route
           path="/admin/staff"
           element={
@@ -87,6 +103,8 @@ function App() {
             </AdminProtectedRoute>
           }
         />
+
+        {/* ✅ FIXED MISSING ROUTES */}
         <Route
           path="/admin/events"
           element={
@@ -95,6 +113,7 @@ function App() {
             </AdminProtectedRoute>
           }
         />
+
         <Route
           path="/admin/jobs"
           element={
@@ -104,6 +123,7 @@ function App() {
           }
         />
 
+        {/* ================= USER PROTECTED ================= */}
         <Route
           path="/home"
           element={
@@ -112,6 +132,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/projects"
           element={
@@ -120,6 +141,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/projects/:id"
           element={
@@ -128,14 +150,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/projects/edit/:id"
-          element={
-            <ProtectedRoute>
-              <EditProject />
-            </ProtectedRoute>
-          }
-        />
+
         <Route
           path="/profile"
           element={
@@ -144,6 +159,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/staff"
           element={
@@ -152,6 +168,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/staff/:id"
           element={
@@ -160,6 +177,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/events"
           element={
@@ -168,6 +186,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/jobs"
           element={
