@@ -3,7 +3,18 @@ import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import Navbar from "../components/Navbar";
 import ProjectCard from "../components/ProjectCard";
-import { Search, Filter, Rocket, Layers, Sparkles } from "lucide-react";
+import {
+  Search,
+  Filter,
+  Rocket,
+  Layers,
+  Sparkles,
+  Trash2,
+  AlertTriangle,
+  X,
+  Loader2,
+} from "lucide-react";
+import { toast } from "react-toastify";
 
 const Projects = () => {
   const navigate = useNavigate();
@@ -11,6 +22,33 @@ const Projects = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("");
+
+  /* ================= 🗑️ DELETION LOGIC (MODERN MODAL) ================= */
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Triggered by ProjectCard
+  const handleDeleteTrigger = (project) => {
+    setProjectToDelete(project);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteProject = async () => {
+    if (!projectToDelete) return;
+    setIsDeleting(true);
+    try {
+      await API.delete(`/projects/${projectToDelete._id}`);
+      setProjects((prev) => prev.filter((p) => p._id !== projectToDelete._id));
+      toast.success("Project permanently removed");
+      setShowDeleteModal(false);
+    } catch (err) {
+      toast.error("Deletion failed. Access denied.");
+    } finally {
+      setIsDeleting(false);
+      setProjectToDelete(null);
+    }
+  };
 
   /* ================= 🔐 USER LOGIC (STRICTLY PRESERVED) ================= */
   const getCurrentUserId = () => {
@@ -67,7 +105,7 @@ const Projects = () => {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#030407] text-slate-800 dark:text-slate-200 font-sans selection:bg-indigo-500/30 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#030407] text-slate-800 dark:text-slate-200 font-sans selection:bg-indigo-500/30 overflow-x-hidden transition-colors duration-500">
       <Navbar />
 
       {/* --- GLOSSY BACKGROUND LAYER --- */}
@@ -122,7 +160,6 @@ const Projects = () => {
         <div className="sticky top-24 z-40 mb-12">
           <div className="p-2 rounded-[2rem] bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border border-white/40 dark:border-slate-800/60 shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
             <div className="flex flex-col md:flex-row gap-3">
-              {/* Modern Search */}
               <div className="relative flex-1 group">
                 <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
                   <Search size={18} />
@@ -136,15 +173,14 @@ const Projects = () => {
                 />
               </div>
 
-              {/* Modern Select */}
-              <div className="relative md:w-72">
-                <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-slate-400">
+              <div className="relative md:w-72 group">
+                <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
                   <Filter size={18} />
                 </div>
                 <select
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full pl-14 pr-10 py-4 rounded-2xl bg-white/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-bold"
+                  className="w-full pl-14 pr-10 py-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white cursor-pointer appearance-none outline-none focus:ring-2 focus:ring-indigo-500/50 font-bold transition-all"
                 >
                   <option value="">All Departments</option>
                   {["CSE", "ECE", "EEE", "MECH", "CIVIL"].map((dept) => (
@@ -173,47 +209,91 @@ const Projects = () => {
                 <div className="p-8 space-y-4">
                   <div className="h-8 bg-slate-200/50 dark:bg-slate-800/50 rounded-xl w-3/4" />
                   <div className="h-4 bg-slate-200/50 dark:bg-slate-800/50 rounded-lg w-full" />
-                  <div className="h-4 bg-slate-200/50 dark:bg-slate-800/50 rounded-lg w-1/2" />
                 </div>
               </div>
             ))}
           </div>
         ) : filteredProjects.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 text-center">
-            <div className="relative mb-8">
-              <div className="absolute inset-0 bg-indigo-500 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-              <div className="relative w-24 h-24 bg-white dark:bg-slate-900 rounded-3xl flex items-center justify-center shadow-2xl border border-white/20 dark:border-slate-800">
-                <Search size={40} className="text-slate-400" />
-              </div>
-            </div>
             <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">
               No Projects Found
             </h3>
-            <p className="text-slate-500 dark:text-slate-400 max-w-sm font-medium">
-              We couldn't find matches for{" "}
-              <span className="text-indigo-500">"{search}"</span>. Try a
-              different keyword or department.
+            <p className="text-slate-500">
+              Try a different keyword or department.
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {filteredProjects.map((project) => (
-              <div
+              <ProjectCard
                 key={project._id}
-                className="group relative transition-all duration-500 hover:-translate-y-2"
-              >
-                {/* Visual Card Wrapper (Assuming ProjectCard uses its own glass styles) */}
-                <ProjectCard project={project} currentUserId={currentUserId} />
-              </div>
+                project={project}
+                currentUserId={currentUserId}
+                onDelete={() => handleDeleteTrigger(project)}
+              />
             ))}
           </div>
         )}
       </main>
 
-      {/* Custom Styles for Animation */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
+      {/* ✅ FANCY MODERN DELETE PANEL */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity"
+            onClick={() => !isDeleting && setShowDeleteModal(false)}
+          />
+
+          <div className="relative w-full max-w-md bg-white dark:bg-[#0b0c15] border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-10 shadow-[0_0_80px_-20px_rgba(244,63,94,0.3)] overflow-hidden scale-in-center">
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-rose-600/20 blur-[60px] pointer-events-none" />
+
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-rose-500/10 rounded-3xl flex items-center justify-center text-rose-500 mb-6 border border-rose-500/20 animate-pulse">
+                <AlertTriangle size={40} strokeWidth={1.5} />
+              </div>
+
+              <h3 className="text-2xl font-black mb-2 tracking-tight uppercase dark:text-white">
+                Delete Project?
+              </h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-10">
+                You are about to permanently remove{" "}
+                <span className="font-bold text-slate-900 dark:text-white">
+                  "{projectToDelete?.title}"
+                </span>
+                . This action cannot be undone.
+              </p>
+
+              <div className="flex flex-col w-full gap-3">
+                <button
+                  disabled={isDeleting}
+                  onClick={confirmDeleteProject}
+                  className={`w-full py-4 rounded-2xl bg-rose-600 text-white font-bold transition-all hover:bg-rose-700 hover:scale-[1.02] shadow-lg shadow-rose-600/20 flex items-center justify-center gap-2 ${
+                    isDeleting ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  {isDeleting ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={18} />
+                  )}
+                  {isDeleting ? "Removing..." : "Yes, Delete Project"}
+                </button>
+
+                <button
+                  disabled={isDeleting}
+                  onClick={() => setShowDeleteModal(false)}
+                  className="w-full py-4 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 font-bold hover:bg-slate-200 dark:hover:bg-white/10 transition-all text-slate-600 dark:text-slate-400"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- STYLES --- */}
+      <style>{`
         @keyframes gradient-x {
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
@@ -222,9 +302,9 @@ const Projects = () => {
           background-size: 200% 200%;
           animation: gradient-x 5s ease infinite;
         }
-      `,
-        }}
-      />
+        .scale-in-center { animation: scale-in-center 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; }
+        @keyframes scale-in-center { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+      `}</style>
     </div>
   );
 };

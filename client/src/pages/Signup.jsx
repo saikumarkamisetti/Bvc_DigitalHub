@@ -1,11 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react"; // ✅ Import useEffect
 import { useNavigate, Link } from "react-router-dom";
 import API from "../services/api";
 import { toast } from "react-toastify";
-import { User, Mail, Lock, ArrowRight, Sparkles, Layers } from "lucide-react";
+import {
+  User,
+  Mail,
+  Lock,
+  ArrowRight,
+  Sparkles,
+  Layers,
+  ArrowLeft,
+} from "lucide-react";
 
 const Signup = () => {
   const navigate = useNavigate();
+
+  // ✅ AUTO-REDIRECT LOGIC: Checks for token on component mount
+  // If user is already logged in, send them straight to Home
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/home");
+    }
+  }, [navigate]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -36,10 +53,7 @@ const Signup = () => {
     <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-[#05070a] text-slate-900 dark:text-white font-sans selection:bg-indigo-500/50 p-4 relative overflow-hidden transition-colors duration-500">
       {/* ================= UNIQUE DYNAMIC BACKGROUND ================= */}
       <div className="absolute inset-0 z-0">
-        {/* Noise Texture */}
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 mix-blend-soft-light dark:mix-blend-overlay"></div>
-
-        {/* Aurora Gradients (Adaptive) */}
         <div
           className="absolute top-[-10%] left-[-20%] w-[700px] h-[700px] bg-gradient-to-r from-indigo-400/30 to-purple-400/30 dark:from-indigo-600/30 dark:to-purple-600/30 rounded-full blur-[120px] animate-pulse-slow"
           style={{ animationDuration: "15s" }}
@@ -52,16 +66,23 @@ const Signup = () => {
 
       {/* ================= THE "HYPER-GLASS" CARD ================= */}
       <div className="relative z-10 w-full max-w-4xl h-auto md:h-[600px] grid grid-cols-1 md:grid-cols-2 rounded-[2.5rem] overflow-hidden shadow-2xl dark:shadow-[0_0_50px_-12px_rgb(79,70,229,0.3)] border border-white/40 dark:border-white/10 animate-fade-in-up group transition-all duration-500">
-        {/* Glass Reflections (Adaptive) */}
+        {/* ================= BACK BUTTON (FIXED Z-INDEX) ================= */}
+        <button
+          onClick={() => navigate("/")}
+          className="absolute top-6 left-6 z-[100] p-2 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-cyan-500 hover:bg-white dark:hover:bg-white/10 transition-all duration-300 group/back shadow-sm border border-transparent hover:border-cyan-500/20"
+          title="Back to Landing"
+        >
+          <ArrowLeft className="w-5 h-5 group-hover/back:-translate-x-1 transition-transform" />
+        </button>
+
+        {/* Glass Reflections */}
         <div className="absolute inset-0 bg-white/60 dark:bg-white/5 backdrop-blur-3xl z-0 pointer-events-none transition-colors duration-500"></div>
 
-        {/* Left Panel - BRANDING (Keeps rich colors in both modes for contrast) */}
-        <div className="hidden md:flex flex-col justify-between p-10 relative overflow-hidden z-10">
-          {/* Rich Gradient Background */}
+        {/* Left Panel - BRANDING (FIXED: Increased top padding to avoid overlap) */}
+        <div className="hidden md:flex flex-col justify-between p-10 pt-24 relative overflow-hidden z-10">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-indigo-600 via-purple-700 to-slate-900 opacity-90"></div>
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 mix-blend-overlay"></div>
 
-          {/* Abstract Geometric Overlay */}
           <svg
             className="absolute top-0 right-0 opacity-20 mix-blend-overlay w-64 h-64 text-white"
             viewBox="0 0 200 200"
@@ -83,7 +104,6 @@ const Signup = () => {
                 BVC HUB
               </span>
             </div>
-
             <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-indigo-100 to-purple-200 mb-4 leading-[1.1] drop-shadow-2xl">
               Define your <br /> future.
             </h2>
@@ -110,7 +130,7 @@ const Signup = () => {
           </div>
         </div>
 
-        {/* Right Panel - FORM (Adaptive Light/Dark) */}
+        {/* Right Panel - FORM */}
         <div className="p-8 md:p-12 flex flex-col justify-center relative z-10 bg-white/40 dark:bg-[#0d1117]/40 transition-colors duration-500">
           <div className="mb-8">
             <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">
@@ -122,7 +142,6 @@ const Signup = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Name Input */}
             <div className="relative group">
               <User className="absolute left-4 top-4 h-5 w-5 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors duration-300" />
               <input
@@ -132,11 +151,8 @@ const Signup = () => {
                 onChange={handleChange}
                 className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#13171d]/80 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 focus:bg-white dark:focus:bg-[#1a1f2e] outline-none transition-all duration-300 hover:border-slate-300 dark:hover:border-white/20"
               />
-              {/* Input Glow effect */}
-              <div className="absolute inset-0 rounded-2xl bg-indigo-500/10 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 -z-10"></div>
             </div>
 
-            {/* Email Input */}
             <div className="relative group">
               <Mail className="absolute left-4 top-4 h-5 w-5 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors duration-300" />
               <input
@@ -147,10 +163,8 @@ const Signup = () => {
                 onChange={handleChange}
                 className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#13171d]/80 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 focus:bg-white dark:focus:bg-[#1a1f2e] outline-none transition-all duration-300 hover:border-slate-300 dark:hover:border-white/20"
               />
-              <div className="absolute inset-0 rounded-2xl bg-indigo-500/10 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 -z-10"></div>
             </div>
 
-            {/* Password Input */}
             <div className="relative group">
               <Lock className="absolute left-4 top-4 h-5 w-5 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors duration-300" />
               <input
@@ -161,10 +175,8 @@ const Signup = () => {
                 onChange={handleChange}
                 className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#13171d]/80 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 focus:bg-white dark:focus:bg-[#1a1f2e] outline-none transition-all duration-300 hover:border-slate-300 dark:hover:border-white/20"
               />
-              <div className="absolute inset-0 rounded-2xl bg-indigo-500/10 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 -z-10"></div>
             </div>
 
-            {/* Shimmering Button */}
             <button
               type="submit"
               disabled={loading}

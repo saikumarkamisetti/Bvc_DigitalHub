@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import Admin from "../models/Admin.js"; // ✅ Added: Import Admin model
 
 const protect = async (req, res, next) => {
   let token;
@@ -15,11 +16,18 @@ const protect = async (req, res, next) => {
       // 2️⃣ Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // 3️⃣ Get user (exclude password)
+      // 3️⃣ Get account (exclude password)
+      // First, try to find the ID in the regular User collection
       req.user = await User.findById(decoded.id).select("-password");
 
+      // ✅ FIX: If not found in User, search the Admin collection
       if (!req.user) {
-        return res.status(401).json({ message: "User not found" });
+        req.user = await Admin.findById(decoded.id).select("-password");
+      }
+
+      // 4️⃣ Final Check
+      if (!req.user) {
+        return res.status(401).json({ message: "Account not found" });
       }
 
       next();

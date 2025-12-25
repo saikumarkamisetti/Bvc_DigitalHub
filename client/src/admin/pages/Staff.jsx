@@ -17,6 +17,7 @@ import {
   BookOpen,
   Clock,
   Sparkles,
+  AlertTriangle,
 } from "lucide-react";
 
 /* ================= CONSTANTS ================= */
@@ -56,6 +57,11 @@ const Staff = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
   const [viewStaff, setViewStaff] = useState(null);
+
+  // ✅ New Modal States
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [staffToDelete, setStaffToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const token = localStorage.getItem("adminToken");
 
@@ -139,18 +145,25 @@ const Staff = () => {
     }
   };
 
-  const deleteStaff = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this staff member?"))
-      return;
-
+  // ✅ Updated Delete Logic with Fancy Modal
+  const confirmDeleteStaff = async () => {
+    if (!staffToDelete) return;
+    setIsDeleting(true);
     try {
-      await axios.delete(`http://localhost:5000/api/admin/staff/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.success("Staff deleted");
+      await axios.delete(
+        `http://localhost:5000/api/admin/staff/${staffToDelete._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("Staff member removed successfully");
       fetchStaff();
+      setShowDeleteModal(false);
     } catch (error) {
       toast.error("Failed to delete staff");
+    } finally {
+      setIsDeleting(false);
+      setStaffToDelete(null);
     }
   };
 
@@ -170,6 +183,8 @@ const Staff = () => {
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.3); border-radius: 10px; }
         .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); }
+        .scale-in-center { animation: scale-in-center 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; }
+        @keyframes scale-in-center { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
       `}</style>
 
       {/* Background Grids */}
@@ -184,12 +199,9 @@ const Staff = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
             <h1 className="text-4xl font-black tracking-tight flex items-center gap-3">
-              {/* Icon Container with Bounce Hover */}
               <span className="cursor-pointer p-2.5 rounded-xl bg-gradient-to-br from-rose-400 to-pink-600 text-white shadow-lg shadow-rose-500/30 transition-all duration-300 ease-out hover:scale-110 hover:-rotate-6 hover:shadow-rose-500/50">
                 <Users className="w-6 h-6" />
               </span>
-
-              {/* Glossy Text */}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-fuchsia-600 to-purple-600 dark:from-rose-300 dark:via-fuchsia-300 dark:to-purple-300 drop-shadow-sm">
                 Faculty Hub
               </span>
@@ -249,7 +261,10 @@ const Staff = () => {
                 s={s}
                 onView={() => setViewStaff(s)}
                 onEdit={() => handleEditClick(s)}
-                onDelete={() => deleteStaff(s._id)}
+                onDelete={() => {
+                  setStaffToDelete(s);
+                  setShowDeleteModal(true);
+                }}
               />
             ))
           ) : (
@@ -297,6 +312,63 @@ const Staff = () => {
           staff={viewStaff}
           onClose={() => setViewStaff(null)}
         />
+      )}
+
+      {/* ✅ FANCY MODERN DELETE MODAL */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity"
+            onClick={() => !isDeleting && setShowDeleteModal(false)}
+          />
+
+          <div className="relative w-full max-w-md bg-white dark:bg-[#161b22] border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-10 shadow-[0_0_80px_-20px_rgba(244,63,94,0.3)] overflow-hidden scale-in-center">
+            {/* Ambient Background Glow for Modal */}
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-rose-600/20 blur-[60px] pointer-events-none" />
+
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-rose-500/10 rounded-3xl flex items-center justify-center text-rose-500 mb-6 border border-rose-500/20 animate-pulse">
+                <AlertTriangle size={40} strokeWidth={1.5} />
+              </div>
+
+              <h3 className="text-2xl font-black mb-2 tracking-tight uppercase">
+                Confirm Deletion
+              </h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-10">
+                Are you sure you want to remove{" "}
+                <span className="font-bold text-slate-900 dark:text-white">
+                  "{staffToDelete?.name}"
+                </span>
+                ? This profile and all its data will be permanently deleted.
+              </p>
+
+              <div className="flex flex-col w-full gap-3">
+                <button
+                  disabled={isDeleting}
+                  onClick={confirmDeleteStaff}
+                  className={`w-full py-4 rounded-2xl bg-rose-600 text-white font-bold transition-all hover:bg-rose-700 hover:scale-[1.02] active:scale-95 shadow-lg shadow-rose-600/20 flex items-center justify-center gap-2 ${
+                    isDeleting ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  {isDeleting ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Trash2 size={18} />
+                  )}
+                  {isDeleting ? "Deleting Member..." : "Yes, Delete Staff"}
+                </button>
+
+                <button
+                  disabled={isDeleting}
+                  onClick={() => setShowDeleteModal(false)}
+                  className="w-full py-4 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 font-bold hover:bg-slate-200 dark:hover:bg-white/10 transition-all text-slate-600 dark:text-slate-400"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -523,7 +595,6 @@ const StaffDetailsModal = ({ staff, onClose }) => {
       >
         {/* Left Panel: Profile & Branding */}
         <div className="w-full md:w-2/5 bg-gradient-to-b from-indigo-600 via-indigo-700 to-violet-800 dark:via-violet-800 dark:to-[#0d1117] p-10 flex flex-col items-center justify-center text-center relative overflow-hidden">
-          {/* Decorative Elements */}
           <div className="absolute inset-0 opacity-10 pointer-events-none">
             <div className="absolute top-[-5%] left-[-5%] w-64 h-64 border-[30px] border-white rounded-full" />
             <div className="absolute bottom-[-5%] right-[-5%] w-32 h-32 border-[15px] border-white rounded-full" />
@@ -575,7 +646,6 @@ const StaffDetailsModal = ({ staff, onClose }) => {
               </span>
             </div>
 
-            {/* Bento Grid */}
             <div className="grid grid-cols-2 gap-4">
               <div className="p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 group hover:border-indigo-500/50 transition-all">
                 <GraduationCap className="w-5 h-5 text-indigo-500 mb-2" />
@@ -597,7 +667,6 @@ const StaffDetailsModal = ({ staff, onClose }) => {
               </div>
             </div>
 
-            {/* Expertise Section */}
             <div className="p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
               <h4 className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-4">
                 Subject Expertise
@@ -614,7 +683,6 @@ const StaffDetailsModal = ({ staff, onClose }) => {
               </div>
             </div>
 
-            {/* Biography */}
             <div className="px-2">
               <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">
                 Professional Biography
@@ -626,7 +694,6 @@ const StaffDetailsModal = ({ staff, onClose }) => {
             </div>
           </div>
 
-          {/* Footer Branding */}
           <div className="pt-6 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-indigo-500" />

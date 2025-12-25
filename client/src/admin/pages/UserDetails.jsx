@@ -15,323 +15,514 @@ import {
   Camera,
   ArrowLeft,
   ShieldCheck,
+  Calendar,
+  Layers,
+  ExternalLink,
+  Code,
+  Lock,
+  Eye,
+  AlertTriangle,
+  Info,
 } from "lucide-react";
 import { toast } from "react-toastify";
+
+const NAVBAR_HEIGHT = "80px";
 
 const UserDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
+  const [projects, setProjects] = useState([]);
   const [editing, setEditing] = useState(false);
   const [profilePicFile, setProfilePicFile] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [newPassword, setNewPassword] = useState("");
 
-  useEffect(() => {
-    adminAPI.get(`/admin/users/${id}`).then((res) => setUser(res.data));
-  }, [id]);
+  // ✅ Modal States
+  const [showUserDeleteModal, setShowUserDeleteModal] = useState(false);
+  const [showProjDeleteModal, setShowProjDeleteModal] = useState(false);
+  const [selectedProj, setSelectedProj] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  /* ================= UPDATE USER ================= */
-  const updateUser = async () => {
+  const fetchData = async () => {
     try {
-      const data = new FormData();
-      data.append("name", user.name);
-      data.append("email", user.email);
-      data.append("rollNumber", user.rollNumber || "");
-      data.append("department", user.department || "");
-      data.append("bio", user.bio || "");
-
-      if (profilePicFile) {
-        data.append("profilePic", profilePicFile);
+      const userRes = await adminAPI.get(`/admin/users/${id}`);
+      setUser(userRes.data);
+      try {
+        const projectRes = await adminAPI.get(`/admin/projects/user/${id}`);
+        setProjects(projectRes.data || []);
+      } catch (err) {
+        setProjects([]);
       }
-
-      const res = await adminAPI.put(`/admin/users/${id}`, data);
-
-      if (res.data && res.data.user) {
-        setUser(res.data.user);
-      }
-
-      toast.success("Profile updated successfully");
-      setEditing(false);
-      setProfilePicFile(null);
-    } catch {
-      toast.error("Update failed. Please try again.");
+    } catch (err) {
+      toast.error("Failed to fetch user data");
     }
   };
 
-  /* ================= DELETE USER ================= */
-  const deleteUser = async () => {
-    if (
-      !window.confirm("Are you sure you want to delete this user permanently?")
-    )
-      return;
+  useEffect(() => {
+    fetchData();
+  }, [id]);
+
+  const updateUser = async () => {
+    try {
+      const data = new FormData();
+      ["name", "email", "rollNumber", "department", "year", "bio"].forEach(
+        (key) => {
+          data.append(key, user[key] || "");
+        }
+      );
+      if (newPassword) data.append("password", newPassword);
+      if (profilePicFile) data.append("profilePic", profilePicFile);
+      if (user.skills) {
+        const skillsArray =
+          typeof user.skills === "string"
+            ? user.skills
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean)
+            : user.skills;
+        data.append("skills", JSON.stringify(skillsArray));
+      }
+      await adminAPI.put(`/admin/users/${id}`, data);
+      toast.success("User updated successfully");
+      setEditing(false);
+      setNewPassword("");
+      fetchData();
+    } catch {
+      toast.error("Update failed");
+    }
+  };
+
+  // ✅ Fancy Delete User Logic
+  const confirmDeleteUser = async () => {
+    setIsProcessing(true);
     try {
       await adminAPI.delete(`/admin/users/${id}`);
-      toast.success("User deleted successfully");
+      toast.success("Account permanently deleted");
       navigate("/admin/users");
-    } catch (error) {
-      toast.error("Failed to delete user");
+    } catch {
+      toast.error("Delete operation failed");
+      setIsProcessing(false);
+      setShowUserDeleteModal(false);
+    }
+  };
+
+  // ✅ Fancy Delete Project Logic
+  const confirmDeleteProject = async () => {
+    if (!selectedProj) return;
+    setIsProcessing(true);
+    try {
+      await adminAPI.delete(`/admin/projects/${selectedProj._id}`);
+      setProjects((prev) => prev.filter((p) => p._id !== selectedProj._id));
+      toast.success("Project removed from repository");
+      setShowProjDeleteModal(false);
+    } catch {
+      toast.error("Failed to delete project");
+    } finally {
+      setIsProcessing(false);
+      setSelectedProj(null);
     }
   };
 
   if (!user)
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#090c10] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="h-screen bg-slate-50 dark:bg-[#05070a] flex items-center justify-center">
+        <div className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#090c10] text-slate-900 dark:text-white font-sans selection:bg-rose-500/30 flex flex-col">
+    <div className="h-screen w-full bg-slate-50 dark:bg-[#05070a] text-slate-900 dark:text-white flex flex-col overflow-hidden relative transition-colors duration-300">
       <AdminNavbar />
 
-      {/* Background Decorative Grids */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 dark:opacity-30 mix-blend-soft-light dark:mix-blend-overlay"></div>
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-rose-500/10 dark:bg-rose-500/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 dark:bg-blue-500/10 rounded-full blur-[100px]" />
-      </div>
+      <main
+        className="flex-1 flex flex-col md:flex-row p-4 md:p-8 gap-6 overflow-hidden relative z-10"
+        style={{ marginTop: NAVBAR_HEIGHT }}
+      >
+        {/* LEFT PANEL: Fixed Profile Card */}
+        <div className="w-full md:w-[380px] shrink-0 bg-white/70 dark:bg-white/[0.03] backdrop-blur-3xl border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-8 flex flex-col items-center shadow-xl dark:shadow-2xl relative">
+          <button
+            onClick={() => navigate("/admin/users")}
+            className="absolute top-6 left-6 p-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 transition-all"
+          >
+            <ArrowLeft
+              size={18}
+              className="text-indigo-600 dark:text-indigo-400"
+            />
+          </button>
 
-      {/* Main Content - Centered & Fixed Height */}
-      <main className="flex-1 relative z-10 flex items-center justify-center p-6 pt-24">
-        <div className="w-full max-w-6xl h-[85vh] bg-white/70 dark:bg-[#161b22]/80 backdrop-blur-2xl rounded-[2.5rem] shadow-2xl border border-white/50 dark:border-white/5 overflow-hidden flex flex-col md:flex-row">
-          {/* LEFT PANEL: Profile & Actions (35% Width) */}
-          <div className="w-full md:w-[35%] bg-gradient-to-br from-slate-100 to-white dark:from-[#0d1117] dark:to-[#161b22] border-r border-white/50 dark:border-white/5 p-8 flex flex-col items-center justify-center relative">
-            <button
-              onClick={() => navigate("/admin/users")}
-              className="absolute top-8 left-8 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-white/5 transition-colors"
-              title="Back to Users"
-            >
-              <ArrowLeft
-                size={20}
-                className="text-slate-500 dark:text-slate-400"
-              />
-            </button>
-
-            {/* Avatar Section */}
-            <div className="relative group mb-6">
-              <div className="w-48 h-48 rounded-[2.5rem] p-1.5 bg-white dark:bg-[#161b22] shadow-2xl shadow-indigo-500/10">
-                <div className="w-full h-full rounded-[2.2rem] overflow-hidden bg-slate-100 dark:bg-slate-800 relative">
-                  {preview || user.profilePic ? (
-                    <img
-                      src={preview || user.profilePic}
-                      alt={user.name}
-                      className="w-full h-full object-cover"
+          <div className="relative group mb-8 mt-4">
+            <div className="w-44 h-44 rounded-[2.5rem] p-1.5 bg-gradient-to-br from-indigo-500 to-fuchsia-500 shadow-lg">
+              <div className="w-full h-full rounded-[2.2rem] overflow-hidden bg-slate-100 dark:bg-[#0d1117] relative">
+                <img
+                  src={
+                    preview ||
+                    user.profilePic ||
+                    "https://via.placeholder.com/150"
+                  }
+                  className="w-full h-full object-cover"
+                  alt="Profile"
+                />
+                {editing && (
+                  <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm">
+                    <Camera size={24} className="mb-1 text-white" />
+                    <input
+                      type="file"
+                      hidden
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setProfilePicFile(file);
+                          setPreview(URL.createObjectURL(file));
+                        }
+                      }}
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-6xl font-black">
-                      {user.name.charAt(0)}
-                    </div>
-                  )}
-
-                  {/* Camera Overlay */}
-                  {editing && (
-                    <label className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
-                      <Camera className="text-white w-10 h-10 mb-2" />
-                      <span className="text-white text-xs font-bold uppercase tracking-wider">
-                        Change
-                      </span>
-                      <input
-                        type="file"
-                        hidden
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            setProfilePicFile(file);
-                            setPreview(URL.createObjectURL(file));
-                          }
-                        }}
-                      />
-                    </label>
-                  )}
-                </div>
+                  </label>
+                )}
               </div>
-            </div>
-
-            <h2 className="text-3xl font-black text-slate-900 dark:text-white text-center leading-tight mb-2">
-              {user.name}
-            </h2>
-            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-medium text-sm mb-8">
-              <ShieldCheck size={14} className="text-blue-500" />
-              {user.department || "Student"}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col gap-3 w-full max-w-xs">
-              {!editing ? (
-                <>
-                  <button
-                    onClick={() => setEditing(true)}
-                    className="w-full py-3.5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:scale-[1.02] transition-all shadow-lg flex items-center justify-center gap-2"
-                  >
-                    <Edit2 size={18} /> Edit Profile
-                  </button>
-                  <button
-                    onClick={deleteUser}
-                    className="w-full py-3.5 rounded-2xl bg-rose-50 dark:bg-rose-900/10 text-rose-600 dark:text-rose-400 font-bold hover:bg-rose-100 dark:hover:bg-rose-900/20 transition-all border border-rose-200 dark:border-rose-900/30 flex items-center justify-center gap-2"
-                  >
-                    <Trash2 size={18} /> Delete User
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={updateUser}
-                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold hover:shadow-lg hover:shadow-emerald-500/25 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
-                  >
-                    <Save size={18} /> Save Changes
-                  </button>
-                  <button
-                    onClick={() => {
-                      setEditing(false);
-                      setPreview(null);
-                      setProfilePicFile(null);
-                    }}
-                    className="w-full py-3.5 rounded-2xl bg-white dark:bg-[#0d1117] border border-slate-200 dark:border-slate-700 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300"
-                  >
-                    <X size={18} /> Cancel
-                  </button>
-                </>
-              )}
             </div>
           </div>
 
-          {/* RIGHT PANEL: Details Form (65% Width) */}
-          <div className="flex-1 p-8 md:p-12 overflow-y-auto custom-scrollbar flex flex-col justify-center">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <Input
-                label="Full Name"
-                value={user.name}
-                onChange={(v) => setUser({ ...user, name: v })}
-                disabled={!editing}
-                icon={User}
-              />
-              <Input
-                label="Email Address"
-                value={user.email}
-                onChange={(v) => setUser({ ...user, email: v })}
-                disabled={!editing}
-                icon={Mail}
-              />
-              <Input
-                label="Roll Number"
-                value={user.rollNumber || ""}
-                onChange={(v) => setUser({ ...user, rollNumber: v })}
-                disabled={!editing}
-                icon={Hash}
-              />
-              <Select
-                label="Department"
-                value={user.department || ""}
-                onChange={(v) => setUser({ ...user, department: v })}
-                disabled={!editing}
-                icon={BookOpen}
-              />
-            </div>
+          <h2 className="text-2xl font-black text-center mb-1 tracking-tight uppercase leading-tight">
+            {user.name}
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 text-xs mb-10 text-center font-mono opacity-80">
+            {user.email}
+          </p>
 
-            <div className="h-full max-h-[250px]">
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-                <FileText size={14} /> Bio & Details
-              </label>
-              <textarea
-                className={`w-full h-[calc(100%-2rem)] p-5 rounded-[1.5rem] bg-white/50 dark:bg-[#0d1117]/50 border transition-all resize-none outline-none focus:ring-2 focus:ring-blue-500/50 
-                    ${
-                      !editing
-                        ? "border-transparent text-slate-600 dark:text-slate-300 leading-relaxed"
-                        : "border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
-                    }`}
-                placeholder="No additional details provided..."
-                disabled={!editing}
-                value={user.bio || ""}
-                onChange={(e) => setUser({ ...user, bio: e.target.value })}
-              />
+          <div className="flex flex-col gap-3 w-full mt-auto">
+            {!editing ? (
+              <>
+                <button
+                  onClick={() => setEditing(true)}
+                  className="w-full py-4 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-black font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-all shadow-md"
+                >
+                  <Edit2 size={18} /> Edit User
+                </button>
+                <button
+                  onClick={() => setShowUserDeleteModal(true)}
+                  className="w-full py-4 rounded-2xl bg-rose-50 dark:bg-rose-500/5 text-rose-600 dark:text-rose-500 font-bold border border-rose-200 dark:border-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/10 transition-all flex items-center justify-center gap-2"
+                >
+                  <Trash2 size={18} /> Delete Account
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={updateUser}
+                  className="w-full py-4 rounded-2xl bg-indigo-600 text-white font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-all shadow-lg"
+                >
+                  <Save size={18} /> Save Changes
+                </button>
+                <button
+                  onClick={() => {
+                    setEditing(false);
+                    setPreview(null);
+                    setNewPassword("");
+                  }}
+                  className="w-full py-4 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 font-bold hover:bg-slate-200 dark:hover:bg-white/10 transition-all"
+                >
+                  Cancel
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT PANEL: Fixed Box with Internal Scrollbar */}
+        <div className="flex-1 bg-white/70 dark:bg-white/[0.03] backdrop-blur-3xl border border-slate-200 dark:border-white/10 rounded-[2.5rem] relative overflow-hidden shadow-xl dark:shadow-2xl">
+          <div className="absolute inset-0 overflow-y-auto custom-scrollbar p-8 md:p-12 pr-4 md:pr-10">
+            <section className="mb-12">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+                  <ShieldCheck
+                    size={20}
+                    className="text-indigo-600 dark:text-indigo-400"
+                  />
+                </div>
+                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400">
+                  Basic Information
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <Input
+                  label="Name"
+                  value={user.name}
+                  disabled={!editing}
+                  icon={User}
+                  onChange={(v) => setUser({ ...user, name: v })}
+                />
+                <Input
+                  label="Email"
+                  value={user.email}
+                  disabled={!editing}
+                  icon={Mail}
+                  onChange={(v) => setUser({ ...user, email: v })}
+                />
+                <Input
+                  label="Roll Number"
+                  value={user.rollNumber || ""}
+                  disabled={!editing}
+                  icon={Hash}
+                  onChange={(v) => setUser({ ...user, rollNumber: v })}
+                />
+                <Input
+                  label="Year"
+                  value={user.year || ""}
+                  disabled={!editing}
+                  icon={Calendar}
+                  onChange={(v) => setUser({ ...user, year: v })}
+                />
+                <Select
+                  label="Dept"
+                  value={user.department || ""}
+                  disabled={!editing}
+                  icon={BookOpen}
+                  onChange={(v) => setUser({ ...user, department: v })}
+                />
+                <Input
+                  label="Skills"
+                  value={
+                    Array.isArray(user.skills)
+                      ? user.skills.join(", ")
+                      : user.skills || ""
+                  }
+                  disabled={!editing}
+                  icon={Code}
+                  onChange={(v) => setUser({ ...user, skills: v })}
+                />
+                {editing && (
+                  <div className="md:col-span-2">
+                    <Input
+                      label="Reset Password"
+                      placeholder="New password"
+                      value={newPassword}
+                      type="password"
+                      icon={Lock}
+                      onChange={(v) => setNewPassword(v)}
+                    />
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <div className="pt-10 border-t border-slate-200 dark:border-white/5">
+              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-fuchsia-600 dark:text-fuchsia-400 mb-8 flex items-center gap-2">
+                <Layers size={20} /> Projects ({projects.length})
+              </h3>
+              <div className="grid grid-cols-1 gap-4">
+                {projects.map((proj) => (
+                  <div
+                    key={proj._id}
+                    onClick={() => navigate(`/projects/${proj._id}`)}
+                    className="group p-5 rounded-[1.5rem] bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 hover:border-indigo-500/30 transition-all flex items-center justify-between cursor-pointer shadow-sm"
+                  >
+                    <div className="flex items-center gap-4 overflow-hidden">
+                      <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+                        <FileText size={20} />
+                      </div>
+                      <div className="overflow-hidden">
+                        <h4 className="font-bold truncate text-sm text-slate-800 dark:text-slate-200">
+                          {proj.title}
+                        </h4>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button className="p-2.5 rounded-xl bg-white dark:bg-white/5 text-slate-400 hover:text-indigo-600 shadow-sm">
+                        <Eye size={16} />
+                      </button>
+                      {/* ✅ Trigger Fancy Project Modal */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedProj(proj);
+                          setShowProjDeleteModal(true);
+                        }}
+                        className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </main>
+
+      {/* ✅ FANCY MODAL: User Account Deletion */}
+      <Modal
+        show={showUserDeleteModal}
+        onClose={() => setShowUserDeleteModal(false)}
+        onConfirm={confirmDeleteUser}
+        title="Delete Account?"
+        description={`Permanently remove "${user.name}"? This action cannot be reversed.`}
+        isProcessing={isProcessing}
+        variant="danger"
+      />
+
+      {/* ✅ FANCY MODAL: Project Deletion */}
+      <Modal
+        show={showProjDeleteModal}
+        onClose={() => setShowProjDeleteModal(false)}
+        onConfirm={confirmDeleteProject}
+        title="Remove Project?"
+        description={`Remove "${selectedProj?.title}" from the student's repository?`}
+        isProcessing={isProcessing}
+        variant="warning"
+      />
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; margin: 20px 0; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.3)); border-radius: 10px; }
+        .scale-in { animation: scale-in 0.2s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; }
+        @keyframes scale-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+      `}</style>
     </div>
   );
 };
 
-export default UserDetails;
+/* ✅ Reusable Fancy Modal Component */
+const Modal = ({
+  show,
+  onClose,
+  onConfirm,
+  title,
+  description,
+  isProcessing,
+  variant,
+}) => {
+  if (!show) return null;
+  const isDanger = variant === "danger";
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-black/70 backdrop-blur-md"
+        onClick={() => !isProcessing && onClose()}
+      />
+      <div className="relative w-full max-w-sm bg-white dark:bg-[#0b0c15] border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-10 shadow-[0_0_80px_-20px_rgba(0,0,0,0.4)] overflow-hidden scale-in">
+        <div
+          className={`absolute -top-24 -right-24 w-48 h-48 blur-[60px] pointer-events-none ${
+            isDanger ? "bg-rose-600/20" : "bg-amber-600/20"
+          }`}
+        />
+        <div className="flex flex-col items-center text-center">
+          <div
+            className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 border ${
+              isDanger
+                ? "bg-rose-500/10 text-rose-500 border-rose-500/20"
+                : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+            }`}
+          >
+            {isDanger ? (
+              <AlertTriangle size={40} strokeWidth={1.5} />
+            ) : (
+              <Info size={40} strokeWidth={1.5} />
+            )}
+          </div>
+          <h3 className="text-2xl font-black mb-2 tracking-tight uppercase">
+            {title}
+          </h3>
+          <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-10">
+            {description}
+          </p>
+          <div className="flex flex-col w-full gap-3">
+            <button
+              disabled={isProcessing}
+              onClick={onConfirm}
+              className={`w-full py-4 rounded-2xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 ${
+                isDanger
+                  ? "bg-rose-600 text-white shadow-rose-600/20 hover:bg-rose-700"
+                  : "bg-amber-600 text-white shadow-amber-600/20 hover:bg-amber-700"
+              }`}
+            >
+              {isProcessing ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Trash2 size={18} />
+              )}
+              {isProcessing ? "Processing..." : "Confirm Action"}
+            </button>
+            <button
+              disabled={isProcessing}
+              onClick={onClose}
+              className="w-full py-4 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 font-bold text-slate-600 dark:text-slate-400"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-/* ---------- UI COMPONENTS ---------- */
-
-const Input = ({ label, value, onChange, disabled, icon: Icon }) => (
-  <div className="group w-full">
-    <label className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-      {Icon && <Icon size={14} className={!disabled ? "text-blue-500" : ""} />}{" "}
+/* Reusable UI Elements */
+const Input = ({
+  label,
+  value,
+  onChange,
+  disabled,
+  icon: Icon,
+  type = "text",
+  placeholder = "",
+}) => (
+  <div className="w-full">
+    <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 block ml-1">
       {label}
     </label>
-    <input
-      className={`w-full p-4 rounded-2xl bg-white/50 dark:bg-[#0d1117]/50 border transition-all outline-none focus:ring-2 focus:ring-blue-500/50
-      ${
-        disabled
-          ? "border-transparent text-slate-600 dark:text-slate-300 font-bold"
-          : "border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-medium bg-white dark:bg-black/20"
-      }`}
-      value={value}
-      disabled={disabled}
-      onChange={(e) => onChange(e.target.value)}
-    />
+    <div className="relative group">
+      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors">
+        <Icon size={16} />
+      </div>
+      <input
+        type={type}
+        placeholder={placeholder}
+        className={`w-full pl-12 pr-4 py-4 rounded-2xl text-sm border transition-all outline-none ${
+          disabled
+            ? "bg-slate-100/50 dark:bg-white/[0.02] border-transparent text-slate-500 dark:text-slate-400 font-bold"
+            : "bg-white dark:bg-[#0b0c15] border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:border-indigo-500/50"
+        }`}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
   </div>
 );
 
 const Select = ({ label, value, onChange, disabled, icon: Icon }) => (
-  <div className="group w-full">
-    <label className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-      {Icon && <Icon size={14} className={!disabled ? "text-blue-500" : ""} />}{" "}
+  <div className="w-full">
+    <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 block ml-1">
       {label}
     </label>
-    <div className="relative">
+    <div className="relative group">
+      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors">
+        <Icon size={16} />
+      </div>
       <select
-        className={`w-full p-4 rounded-2xl bg-white/50 dark:bg-[#0d1117]/50 border transition-all outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none
-         ${
-           disabled
-             ? "border-transparent text-slate-600 dark:text-slate-300 font-bold"
-             : "border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white cursor-pointer bg-white dark:bg-black/20"
-         }`}
+        className={`w-full pl-12 pr-4 py-4 rounded-2xl text-sm border appearance-none transition-all outline-none ${
+          disabled
+            ? "bg-slate-100/50 dark:bg-white/[0.02] border-transparent text-slate-500 dark:text-slate-400 font-bold"
+            : "bg-white dark:bg-[#0b0c15] border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:border-indigo-500/50"
+        }`}
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
       >
-        <option value="" className="dark:bg-[#161b22]">
-          Select Department
-        </option>
-        <option value="CSE" className="dark:bg-[#161b22]">
-          CSE
-        </option>
-        <option value="ECE" className="dark:bg-[#161b22]">
-          ECE
-        </option>
-        <option value="EEE" className="dark:bg-[#161b22]">
-          EEE
-        </option>
-        <option value="MECH" className="dark:bg-[#161b22]">
-          MECH
-        </option>
-        <option value="CIVIL" className="dark:bg-[#161b22]">
-          CIVIL
-        </option>
+        <option value="">Select Dept</option>
+        {["CSE", "ECE", "EEE", "MECH", "CIVIL"].map((d) => (
+          <option key={d} value={d} className="bg-white dark:bg-[#0b0c15]">
+            {d}
+          </option>
+        ))}
       </select>
-      {!disabled && (
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </div>
-      )}
     </div>
   </div>
 );
+
+export default UserDetails;

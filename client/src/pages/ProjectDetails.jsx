@@ -17,26 +17,30 @@ import {
 import Navbar from "../components/Navbar";
 import API from "../services/api";
 
-// Custom Hook for User ID
+// ✅ Updated Hook to recognize Admin IDs for Liking
 const useCurrentUserId = () => {
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     try {
       const userRaw = localStorage.getItem("user");
+      const adminRaw = localStorage.getItem("admin");
+
       if (userRaw) {
         const user = JSON.parse(userRaw);
         setUserId(user._id || user.id);
+      } else if (adminRaw) {
+        const admin = JSON.parse(adminRaw);
+        setUserId(admin._id || admin.id);
       }
     } catch (error) {
-      console.error("Failed to parse user from local storage:", error);
+      console.error("Failed to parse session from local storage:", error);
     }
   }, []);
 
   return userId;
 };
 
-// Loading Component
 const LoadingScreen = () => (
   <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-[#020205]">
     <Loader2 className="w-16 h-16 text-indigo-500 animate-spin" />
@@ -46,7 +50,6 @@ const LoadingScreen = () => (
   </div>
 );
 
-// Avatar Component
 const Avatar = ({ user }) => {
   return (
     <div className="w-full h-full flex items-center justify-center">
@@ -73,8 +76,20 @@ const ProjectDetails = () => {
   const [copied, setCopied] = useState(false);
   const errorShownRef = useRef(false);
 
+  // ✅ FIXED: Dependency array is constant [id, navigate] to stop the React error
   useEffect(() => {
     let cancelled = false;
+
+    // Access control: Admin or User
+    const token = localStorage.getItem("token");
+    const adminToken = localStorage.getItem("adminToken");
+
+    if (!token && !adminToken) {
+      toast.error("Please login to view projects");
+      navigate("/login");
+      return;
+    }
+
     const fetchProject = async () => {
       try {
         const { data } = await API.get(`/projects/${id}`);
@@ -97,7 +112,7 @@ const ProjectDetails = () => {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, navigate]);
 
   if (!project) {
     return <LoadingScreen />;
@@ -109,7 +124,10 @@ const ProjectDetails = () => {
   const likesCount = project.likes.length;
 
   const handleLike = async () => {
-    if (!localStorage.getItem("token")) {
+    const token = localStorage.getItem("token");
+    const adminToken = localStorage.getItem("adminToken");
+
+    if (!token && !adminToken) {
       toast.error("Please login to like");
       return;
     }
@@ -118,15 +136,18 @@ const ProjectDetails = () => {
     setIsLiking(true);
 
     try {
+      // API call will now use whichever token is active thanks to fixed api.js
       const { data } = await API.post(`/projects/${project._id}/like`);
 
-      // ✅ SINGLE SOURCE OF TRUTH
       setProject((prev) => ({
         ...prev,
         likes: data.likes,
       }));
     } catch (err) {
-      toast.error("Like failed");
+      // ✅ Improved error logging to see exactly why it failed
+      toast.error(
+        err.response?.status === 401 ? "Unauthorized action" : "Action failed"
+      );
     } finally {
       setIsLiking(false);
     }
@@ -260,6 +281,7 @@ const ProjectDetails = () => {
       <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
       `}</style>
       <div className="h-screen w-full bg-slate-50 dark:bg-[#030407] text-slate-900 dark:text-white flex flex-col overflow-hidden transition-colors duration-500 relative">
         <Navbar />
@@ -270,13 +292,14 @@ const ProjectDetails = () => {
 
         <main className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 lg:p-8 pt-20 lg:pt-24 min-h-0">
           <div className="w-full max-w-[1400px] mb-4 shrink-0 px-2 flex justify-start">
+            {/* ✅ FIXED BACK BUTTON: Uses navigate(-1) to go back to the exact previous profile URL */}
             <button
-              onClick={() => navigate("/projects")}
+              onClick={() => navigate(-1)}
               className="group flex items-center gap-2 px-5 py-2 rounded-full bg-white/80 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-white dark:hover:bg-white/10 hover:border-indigo-500/50 backdrop-blur-xl transition-all duration-300 shadow-sm"
             >
               <ArrowLeft
                 size={16}
-                className="text-slate-500 group-hover:text-indigo-500 transition-colors"
+                className="text-indigo-500 group-hover:text-indigo-500 transition-colors"
               />
               <span className="text-sm font-bold text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white">
                 Back
@@ -321,7 +344,7 @@ const ProjectDetails = () => {
                   </div>
                 </div>
 
-                <h1 className="text-3xl lg:text-4xl font-black text-slate-900 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-br dark:from-white dark:to-slate-500 leading-tight tracking-tight">
+                <h1 className="text-3xl lg:text-4xl font-black text-slate-900 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-br dark:from-white dark:to-slate-500 leading-tight tracking-tight uppercase">
                   {project.title}
                 </h1>
               </div>

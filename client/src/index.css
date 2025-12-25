@@ -101,22 +101,32 @@
 /* =============== LIQUID THEME TRANSITION ================= */
 /* ========================================================= */
 
-/* We use :not(:hover) so that when you mouse over an item, 
-  it uses the normal fast transition instead of the slow 1.2s theme speed.
+/* Fix: We added 'svg' and 'path' to the exclusion list and ensured that 
+  hovered items (and their children) bypass the 1.2s theme delay.
 */
-.theme-liquid-transition *:not(:hover),
+.theme-liquid-transition *:not(:hover):not(svg):not(path),
 .theme-liquid-transition *::before,
 .theme-liquid-transition *::after {
   transition: background-color 1.2s cubic-bezier(0.4, 0, 0.2, 1),
     color 1.2s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 1.2s cubic-bezier(0.4, 0, 0.2, 1),
+    stroke 1.2s cubic-bezier(0.4, 0, 0.2, 1),
+    fill 1.2s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Fix: Shadows must always be fast to prevent "ghosting" or "extra shadow" effects */
-.theme-liquid-transition [class*="shadow-"],
+/* Normal fast speed for all interactions (Hover, Focus, Icons, Buttons) */
+.theme-liquid-transition *:hover,
+.theme-liquid-transition *:hover *,
 .theme-liquid-transition button,
-.theme-liquid-transition a {
+.theme-liquid-transition a,
+.theme-liquid-transition svg,
+.theme-liquid-transition path {
+  transition: all 0.2s ease-in-out !important;
+}
+
+/* Fix: Shadows must always be fast to prevent "ghosting" effects */
+.theme-liquid-transition [class*="shadow-"] {
   transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out !important;
 }
 

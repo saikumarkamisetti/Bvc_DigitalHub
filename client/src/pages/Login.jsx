@@ -1,11 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react"; // ✅ Import useEffect
 import { useNavigate, Link } from "react-router-dom";
 import API from "../services/api";
 import { toast } from "react-toastify";
-import { Mail, Lock, ArrowRight, Sparkles, LogIn } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  ArrowRight,
+  Sparkles,
+  LogIn,
+  ArrowLeft,
+} from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
+
+  // ✅ AUTO-REDIRECT LOGIC: Checks for token on component mount
+  // If user is already logged in, send them straight to Home
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/home");
+    }
+  }, [navigate]);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -29,7 +45,7 @@ const Login = () => {
       const res = await API.post("/auth/login", formData);
       localStorage.setItem("token", res.data.token);
       toast.success(res.data.message, {
-        autoClose: 1500, // 2 seconds
+        autoClose: 1500,
       });
 
       setTimeout(() => {
@@ -48,10 +64,7 @@ const Login = () => {
     <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-[#05070a] text-slate-900 dark:text-white font-sans selection:bg-indigo-500/50 p-4 relative overflow-hidden transition-colors duration-500">
       {/* ================= UNIQUE DYNAMIC BACKGROUND ================= */}
       <div className="absolute inset-0 z-0">
-        {/* Noise Texture */}
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 mix-blend-soft-light dark:mix-blend-overlay"></div>
-
-        {/* Aurora Gradients (Adaptive) */}
         <div
           className="absolute top-[-10%] left-[-20%] w-[700px] h-[700px] bg-gradient-to-r from-indigo-400/30 to-purple-400/30 dark:from-indigo-600/30 dark:to-purple-600/30 rounded-full blur-[120px] animate-pulse-slow"
           style={{ animationDuration: "15s" }}
@@ -64,16 +77,23 @@ const Login = () => {
 
       {/* ================= THE "HYPER-GLASS" CARD ================= */}
       <div className="relative z-10 w-full max-w-4xl h-auto md:h-[600px] grid grid-cols-1 md:grid-cols-2 rounded-[2.5rem] overflow-hidden shadow-2xl dark:shadow-[0_0_50px_-12px_rgb(79,70,229,0.3)] border border-white/40 dark:border-white/10 animate-fade-in-up group transition-all duration-500">
-        {/* Glass Reflections (Adaptive) */}
+        {/* ================= BACK BUTTON ================= */}
+        <button
+          onClick={() => navigate("/")}
+          className="absolute top-6 left-6 z-[100] p-2 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-indigo-500 hover:bg-white dark:hover:bg-white/10 transition-all duration-300 group/back shadow-sm border border-transparent hover:border-indigo-500/20"
+          title="Back to Landing"
+        >
+          <ArrowLeft className="w-5 h-5 group-hover/back:-translate-x-1 transition-transform" />
+        </button>
+
+        {/* Glass Reflections */}
         <div className="absolute inset-0 bg-white/60 dark:bg-white/5 backdrop-blur-3xl z-0 pointer-events-none transition-colors duration-500"></div>
 
         {/* Left Panel - BRANDING */}
-        <div className="hidden md:flex flex-col justify-between p-10 relative overflow-hidden z-10">
-          {/* Rich Gradient Background */}
+        <div className="hidden md:flex flex-col justify-between p-10 pt-24 relative overflow-hidden z-10">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-indigo-600 via-purple-700 to-slate-900 opacity-90"></div>
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 mix-blend-overlay"></div>
 
-          {/* Abstract Geometric Overlay */}
           <svg
             className="absolute top-0 right-0 opacity-20 mix-blend-overlay w-64 h-64 text-white"
             viewBox="0 0 200 200"
@@ -95,7 +115,6 @@ const Login = () => {
                 BVC HUB
               </span>
             </div>
-
             <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-indigo-100 to-purple-200 mb-4 leading-[1.1] drop-shadow-2xl">
               Welcome <br /> Back.
             </h2>
@@ -132,7 +151,6 @@ const Login = () => {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
-            {/* Email Input */}
             <div className="relative group">
               <Mail className="absolute left-4 top-4 h-5 w-5 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors duration-300" />
               <input
@@ -146,7 +164,6 @@ const Login = () => {
               <div className="absolute inset-0 rounded-2xl bg-indigo-500/10 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 -z-10"></div>
             </div>
 
-            {/* Password Input */}
             <div className="relative group">
               <Lock className="absolute left-4 top-4 h-5 w-5 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors duration-300" />
               <input
@@ -160,7 +177,6 @@ const Login = () => {
               <div className="absolute inset-0 rounded-2xl bg-indigo-500/10 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 -z-10"></div>
             </div>
 
-            {/* Shimmering Button */}
             <button
               type="submit"
               disabled={loading}

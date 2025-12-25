@@ -2,7 +2,6 @@ import express from "express";
 import upload from "../middleware/upload.js";
 
 // Import Controllers
-// (Make sure these paths match where you created the files)
 import {
   getEvents,
   createEvent,
@@ -17,35 +16,42 @@ import {
   deleteJob,
 } from "../controllers/adminJobController.js";
 
-// You might also have user/staff controllers imported here
-// import { ... } from "../controllers/adminStaffController.js";
+import {
+  updateUserDetailsAdmin,
+  deleteUserAdmin,
+} from "../controllers/adminUserController.js";
+
+import {
+  getUserProjectsAdmin, // Fetches projects for a specific user ID
+  deleteProjectAdmin, // Allows admin to delete a specific project
+} from "../controllers/adminProjectController.js";
 
 const router = express.Router();
 
+/* ================= USER MANAGEMENT ================= */
+// UPDATE user details (Handles password, profile pic, and info)
+router.put("/users/:id", upload.single("profilePic"), updateUserDetailsAdmin);
+
+// DELETE user
+router.delete("/users/:id", deleteUserAdmin);
+
+/* ================= PROJECT MANAGEMENT ================= */
+// GET all projects for a specific user (Fixes the 404 error)
+router.get("/projects/user/:userId", getUserProjectsAdmin);
+
+// DELETE a specific project by ID
+router.delete("/projects/:id", deleteProjectAdmin);
+
 /* ================= EVENTS ROUTES ================= */
-// GET all events
 router.get("/events", getEvents);
-
-// CREATE event (needs image upload middleware)
 router.post("/events", upload.single("banner"), createEvent);
-
-// UPDATE event (needs image upload middleware)
 router.put("/events/:id", upload.single("banner"), updateEvent);
-
-// DELETE event
 router.delete("/events/:id", deleteEvent);
 
 /* ================= JOBS ROUTES ================= */
-// GET all jobs
 router.get("/jobs", getJobs);
-
-// CREATE job
 router.post("/jobs", createJob);
-
-// UPDATE job
 router.put("/jobs/:id", updateJob);
-
-// DELETE job
 router.delete("/jobs/:id", deleteJob);
 
 export default router;

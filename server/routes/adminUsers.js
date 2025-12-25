@@ -2,28 +2,26 @@ import express from "express";
 import {
   getAllUsers,
   getUserById,
-  updateUser,
-  deleteUser,
+  updateUserDetailsAdmin, // Updated name
+  deleteUserAdmin, // Updated name
 } from "../controllers/adminUserController.js";
 import authAdmin from "../middleware/adminAuth.js";
 import upload from "../middleware/upload.js";
 
 const router = express.Router();
 
-/* EXISTING */
 router.get("/users", authAdmin, getAllUsers);
-
-/* ✅ ADD THIS */
 router.get("/users/:id", authAdmin, getUserById);
 
-/* (already planned / optional) */
+// Update route to use the new controller function name
 router.put(
   "/users/:id",
   authAdmin,
   upload.single("profilePic"),
-  updateUser
+  updateUserDetailsAdmin
 );
 
-router.delete("/users/:id", authAdmin, deleteUser);
+// Update route to use the new controller function name
+router.delete("/users/:id", authAdmin, deleteUserAdmin);
 
 export default router;

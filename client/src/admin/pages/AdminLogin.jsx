@@ -8,6 +8,7 @@ import {
   Lock,
   ArrowRight,
   LayoutDashboard,
+  ArrowLeft, // Added for the back button
 } from "lucide-react";
 
 const AdminLogin = () => {
@@ -54,6 +55,15 @@ const AdminLogin = () => {
 
       {/* ================= GLASS CARD ================= */}
       <div className="relative z-10 w-full max-w-md bg-white/70 dark:bg-[#161b22]/60 backdrop-blur-2xl p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-white/50 dark:border-white/10 animate-fade-in-up overflow-hidden">
+        {/* ================= BACK BUTTON ================= */}
+        <button
+          onClick={() => navigate("/")}
+          className="absolute top-6 left-6 p-2 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-rose-500 hover:bg-white dark:hover:bg-white/10 transition-all duration-300 group/back shadow-sm border border-transparent hover:border-rose-500/20"
+          title="Back to Landing"
+        >
+          <ArrowLeft className="w-5 h-5 group-hover/back:-translate-x-1 transition-transform" />
+        </button>
+
         {/* Decorative Top Line (Rose gradient for Admin) */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-rose-500 to-transparent opacity-80"></div>
 

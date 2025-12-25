@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -32,8 +32,23 @@ import AdminEvents from "./admin/pages/Events";
 import AdminJobs from "./admin/pages/Jobs";
 import UserDetails from "./admin/pages/UserDetails";
 
+/**
+ * ✅ NEW: UniversalProtectedRoute
+ * Allows access if either 'token' (User) or 'adminToken' (Admin) exists.
+ * Otherwise, redirects to login.
+ */
+const UniversalProtectedRoute = ({ children }) => {
+  const isUser = !!localStorage.getItem("token");
+  const isAdmin = !!localStorage.getItem("adminToken");
+
+  if (!isUser && !isAdmin) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
 function App() {
-  // ✅ PERSISTENT THEME: Checks localStorage so the theme stays saved
+  // ✅ PERSISTENT THEME
   const [dark, setDark] = useState(() => {
     return localStorage.getItem("theme") === "dark";
   });
@@ -52,7 +67,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* 🌊 THEME LIQUID WRAPPER: This makes the background shift smoothly */}
+      {/* 🌊 THEME LIQUID WRAPPER */}
       <div
         className={`theme-liquid-transition min-h-screen ${
           dark ? "dark bg-[#030407]" : "bg-slate-50"
@@ -69,14 +84,12 @@ function App() {
                      dark:shadow-[0_20px_50px_rgba(0,0,0,0.8),_inset_0_0_15px_rgba(255,255,255,0.05)]
                      transition-all duration-1000 ease-in-out hover:scale-110 active:scale-90 group"
         >
-          {/* Shine Effect */}
           <div className="absolute inset-0 rounded-full overflow-hidden">
             <div className="absolute top-[-100%] left-[-100%] w-[300%] h-[300%] bg-gradient-to-br from-white/20 via-transparent to-transparent rotate-45 group-hover:top-[-50%] group-hover:left-[-50%] transition-all duration-1000" />
           </div>
 
-          {/* Cinematic Icon Rotation */}
           <div
-            className={`relative z-10 transition-all duration-[1200ms] cubic-bezier(0.4, 0, 0.2, 1) ${
+            className={`relative z-10 transition-all duration-[1200ms] ${
               dark ? "rotate-0 scale-100" : "rotate-[360deg] scale-110"
             }`}
           >
@@ -95,12 +108,6 @@ function App() {
         <ToastContainer
           position="top-center"
           autoClose={1500}
-          hideProgressBar={false}
-          newestOnTop
-          closeOnClick
-          pauseOnFocusLoss={false}
-          pauseOnHover={false}
-          draggable
           theme={dark ? "dark" : "light"}
         />
 
@@ -163,7 +170,18 @@ function App() {
             }
           />
 
-          {/* ================= USER PROTECTED ================= */}
+          {/* ================= SHARED ACCESS (USER + ADMIN) ================= */}
+          {/* 🚀 FIXED: Both Admins and Logged-in Users can see this page */}
+          <Route
+            path="/projects/:id"
+            element={
+              <UniversalProtectedRoute>
+                <ProjectDetails />
+              </UniversalProtectedRoute>
+            }
+          />
+
+          {/* ================= USER ONLY PROTECTED ================= */}
           <Route
             path="/home"
             element={
@@ -185,14 +203,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <EditProject />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/projects/:id"
-            element={
-              <ProtectedRoute>
-                <ProjectDetails />
               </ProtectedRoute>
             }
           />
