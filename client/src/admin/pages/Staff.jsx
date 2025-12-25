@@ -302,69 +302,66 @@ const Staff = () => {
   );
 };
 
-/* ================= SUB-COMPONENTS ================= */
-
 const StaffCard = ({ s, onView, onEdit, onDelete }) => (
-  <div className="group relative bg-white/60 dark:bg-[#161b22]/60 backdrop-blur-xl rounded-[2.5rem] border border-white/50 dark:border-white/5 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/20 flex flex-col">
-    <div
-      className="h-52 relative overflow-hidden shrink-0 cursor-pointer"
-      onClick={onView}
-    >
+  <div className="group relative bg-white dark:bg-[#161b22]/60 backdrop-blur-xl rounded-[2.5rem] border border-slate-200 dark:border-white/5 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/20 flex flex-col">
+    <div className="h-52 relative overflow-hidden shrink-0">
       {s.photo ? (
         <img
           src={s.photo}
           alt={s.name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
       ) : (
         <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
           <span className="text-6xl font-black text-white/30">{s.name[0]}</span>
         </div>
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#090c10] via-transparent to-transparent opacity-80" />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 dark:from-[#090c10] via-transparent to-transparent opacity-80" />
 
-      <div className="absolute bottom-4 left-6 right-6">
-        <h3 className="text-2xl font-black text-white truncate">{s.name}</h3>
-        <p className="text-indigo-300 text-sm font-bold uppercase tracking-wider">
+      <div className="absolute bottom-4 left-6 right-6 text-white">
+        <h3 className="text-2xl font-black truncate drop-shadow-md">
+          {s.name}
+        </h3>
+        <p className="text-indigo-200 text-xs font-bold uppercase tracking-wider">
           {s.position}
         </p>
       </div>
-
-      <span className="absolute top-4 right-4 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[10px] font-black text-white uppercase tracking-widest">
-        {s.department}
-      </span>
     </div>
 
     <div className="p-6 flex flex-col flex-1">
       <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-100 dark:border-white/5 text-center">
+        <div className="bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-100 dark:border-white/5 text-center transition-colors">
           <Clock className="w-4 h-4 mx-auto mb-1 text-rose-500" />
-          <p className="text-xs font-black">{s.experience || 0} Yrs</p>
-          <p className="text-[10px] text-slate-400 font-bold uppercase">Exp.</p>
-        </div>
-        <div className="bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-100 dark:border-white/5 text-center">
-          <GraduationCap className="w-4 h-4 mx-auto mb-1 text-indigo-500" />
-          <p className="text-xs font-black truncate">
-            {s.qualification || "N/A"}
+          <p className="text-xs font-black text-slate-700 dark:text-slate-200">
+            {s.experience || 0} Yrs
           </p>
-          <p className="text-[10px] text-slate-400 font-bold uppercase">
-            Degree
+        </div>
+        <div className="bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-100 dark:border-white/5 text-center transition-colors">
+          <GraduationCap className="w-4 h-4 mx-auto mb-1 text-indigo-500" />
+          <p className="text-xs font-black text-slate-700 dark:text-slate-200 truncate">
+            {s.qualification || "N/A"}
           </p>
         </div>
       </div>
 
       <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-white/5 mt-auto">
         <button
-          onClick={onEdit}
-          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 font-bold text-sm hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all"
+          onClick={onView}
+          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-600 dark:bg-indigo-500/10 text-white dark:text-indigo-300 font-bold text-sm hover:bg-indigo-700 dark:hover:bg-indigo-500/20 transition-all shadow-md shadow-indigo-500/20"
         >
-          <Edit2 size={16} /> Edit
+          View Profile
+        </button>
+        <button
+          onClick={onEdit}
+          className="p-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:bg-indigo-500 hover:text-white dark:hover:bg-indigo-500 transition-all"
+        >
+          <Edit2 size={16} />
         </button>
         <button
           onClick={onDelete}
-          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 font-bold text-sm hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-all"
+          className="p-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:bg-rose-500 hover:text-white dark:hover:bg-rose-500 transition-all"
         >
-          <Trash2 size={16} /> Delete
+          <Trash2 size={16} />
         </button>
       </div>
     </div>
@@ -514,74 +511,128 @@ const Input = ({ label, ...props }) => (
 
 const StaffDetailsModal = ({ staff, onClose }) => {
   const subjects = normalizeSubjects(staff.subjects);
+
   return (
     <div
-      className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 animate-in fade-in"
+      className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 dark:bg-[#05070a]/90 backdrop-blur-xl p-4 animate-in fade-in duration-300"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl bg-[#161b22] rounded-[3rem] border border-white/10 overflow-hidden flex flex-col md:flex-row shadow-3xl"
+        className="relative w-full max-w-5xl bg-white dark:bg-[#0d1117] rounded-[3rem] border border-slate-200 dark:border-white/10 overflow-hidden flex flex-col md:flex-row shadow-3xl h-[85vh] max-h-[700px] transition-colors duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="w-full md:w-2/5 bg-gradient-to-br from-indigo-600 to-violet-800 p-12 flex flex-col items-center justify-center text-center">
-          <div className="w-48 h-48 rounded-full border-4 border-white/20 p-1 mb-6 shadow-2xl">
-            {staff.photo ? (
-              <img
-                src={staff.photo}
-                className="w-full h-full object-cover rounded-full"
-                alt=""
-              />
-            ) : (
-              <div className="w-full h-full bg-white/10 rounded-full flex items-center justify-center text-6xl font-black text-white/40">
-                {staff.name[0]}
-              </div>
-            )}
+        {/* Left Panel: Profile & Branding */}
+        <div className="w-full md:w-2/5 bg-gradient-to-b from-indigo-600 via-indigo-700 to-violet-800 dark:via-violet-800 dark:to-[#0d1117] p-10 flex flex-col items-center justify-center text-center relative overflow-hidden">
+          {/* Decorative Elements */}
+          <div className="absolute inset-0 opacity-10 pointer-events-none">
+            <div className="absolute top-[-5%] left-[-5%] w-64 h-64 border-[30px] border-white rounded-full" />
+            <div className="absolute bottom-[-5%] right-[-5%] w-32 h-32 border-[15px] border-white rounded-full" />
           </div>
-          <h2 className="text-4xl font-black text-white leading-tight mb-2">
-            {staff.name}
-          </h2>
-          <p className="text-indigo-200 font-bold uppercase tracking-widest text-sm">
-            {staff.position}
-          </p>
+
+          <div className="relative group">
+            <div className="w-52 h-52 rounded-[2.5rem] border-4 border-white/30 p-1 shadow-2xl overflow-hidden bg-white/10 backdrop-blur-sm transition-transform duration-500 group-hover:scale-105">
+              {staff.photo ? (
+                <img
+                  src={staff.photo}
+                  className="w-full h-full object-cover rounded-[2rem]"
+                  alt={staff.name}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-7xl font-black text-white/50">
+                  {staff.name[0]}
+                </div>
+              )}
+            </div>
+            <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white px-3 py-1 rounded-lg font-black text-[10px] shadow-lg border-2 border-indigo-700 dark:border-[#0d1117]">
+              ONLINE
+            </div>
+          </div>
+
+          <div className="mt-8 z-10">
+            <h2 className="text-3xl font-black text-white leading-tight drop-shadow-md">
+              {staff.name}
+            </h2>
+            <div className="mt-2 inline-block px-4 py-1 rounded-full bg-white/20 border border-white/30 text-white font-bold uppercase tracking-widest text-[10px]">
+              {staff.position}
+            </div>
+          </div>
         </div>
-        <div className="flex-1 p-12 relative overflow-y-auto custom-scrollbar max-h-[80vh]">
+
+        {/* Right Panel: Content Grid */}
+        <div className="flex-1 p-10 relative flex flex-col justify-between overflow-hidden">
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 text-slate-500 hover:text-white"
+            className="absolute top-6 right-6 p-2.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-rose-500 transition-all border border-slate-200 dark:border-white/10"
           >
-            <X />
+            <X size={20} />
           </button>
-          <div className="space-y-10">
-            <div>
-              <h4 className="text-xs font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">
-                Academic Background
-              </h4>
-              <p className="text-2xl font-bold text-white leading-snug">
-                {staff.qualification || "Qualification details hidden"}
-              </p>
+
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <Sparkles className="w-4 h-4 text-indigo-500" />
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.4em]">
+                Faculty Profile Data
+              </span>
             </div>
-            <div>
-              <h4 className="text-xs font-black text-rose-400 uppercase tracking-[0.2em] mb-4">
-                Subjects Expertise
+
+            {/* Bento Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 group hover:border-indigo-500/50 transition-all">
+                <GraduationCap className="w-5 h-5 text-indigo-500 mb-2" />
+                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">
+                  Academic
+                </h4>
+                <p className="text-base font-bold text-slate-900 dark:text-white">
+                  {staff.qualification}
+                </p>
+              </div>
+              <div className="p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 group hover:border-rose-500/50 transition-all">
+                <Briefcase className="w-5 h-5 text-rose-500 mb-2" />
+                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">
+                  Experience
+                </h4>
+                <p className="text-base font-bold text-slate-900 dark:text-white">
+                  {staff.experience} Years
+                </p>
+              </div>
+            </div>
+
+            {/* Expertise Section */}
+            <div className="p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
+              <h4 className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-4">
+                Subject Expertise
               </h4>
               <div className="flex flex-wrap gap-2">
                 {subjects.map((s, i) => (
                   <span
                     key={i}
-                    className="px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 rounded-xl font-bold text-sm"
+                    className="px-3 py-1.5 bg-indigo-100 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-300 rounded-lg font-bold text-[11px]"
                   >
                     {s}
                   </span>
                 ))}
               </div>
             </div>
-            <div>
-              <h4 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-4">
-                Biography
+
+            {/* Biography */}
+            <div className="px-2">
+              <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                Professional Biography
               </h4>
-              <p className="text-slate-400 leading-relaxed text-lg">
-                {staff.bio || "No biography provided."}
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm line-clamp-3">
+                {staff.bio ||
+                  "Academic profile details are currently being updated by the administration."}
               </p>
+            </div>
+          </div>
+
+          {/* Footer Branding */}
+          <div className="pt-6 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-indigo-500" />
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                {staff.department} Department
+              </span>
             </div>
           </div>
         </div>
