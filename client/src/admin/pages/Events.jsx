@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import AdminNavbar from "../components/AdminNavbar";
+import { useRef } from "react";
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -14,6 +15,7 @@ import {
   Sparkles,
   CalendarDays,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import adminAPI from "../../services/adminApi";
@@ -24,13 +26,12 @@ const Events = () => {
   const [showModal, setShowModal] = useState(false);
   const [isEditingId, setIsEditingId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Delete Modal States
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
   const [isDeletingLocal, setIsDeletingLocal] = useState(false);
 
-  // Form State
   const [formData, setFormData] = useState({
     title: "",
     date: "",
@@ -90,6 +91,7 @@ const Events = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       const data = new FormData();
       Object.entries(formData).forEach(([k, v]) => {
@@ -99,15 +101,18 @@ const Events = () => {
 
       if (isEditingId) {
         await adminAPI.put(`/admin/events/${isEditingId}`, data);
-        toast.success("Event updated! 🚀");
+        toast.success("Event updated & Notification emails sent! 🚀");
       } else {
         await adminAPI.post("/admin/events", data);
-        toast.success("Event created! 🎉");
+        toast.success("Event created & Notification emails sent! 🎉");
       }
       fetchEvents();
       setShowModal(false);
     } catch (error) {
-      toast.error("Operation failed.");
+      console.error(error);
+      toast.error("Operation failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -143,6 +148,16 @@ const Events = () => {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.3); border-radius: 10px; }
         .scale-in-center { animation: scale-in-center 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; }
         @keyframes scale-in-center { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* ✅ REMOVE NATIVE ICON (FIXES DUAL ICON ISSUE) */
+        input::-webkit-calendar-picker-indicator {
+          display: none !important;
+          -webkit-appearance: none;
+        }
+        
+        .dark {
+          color-scheme: dark !important;
+        }
       `}</style>
 
       {/* Background Aurora */}
@@ -194,7 +209,7 @@ const Events = () => {
 
         {isLoading ? (
           <div className="flex justify-center pt-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600" />
+            <Loader2 className="animate-spin h-12 w-12 text-violet-600" />
           </div>
         ) : filteredEvents.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -223,6 +238,7 @@ const Events = () => {
       {showModal && (
         <EventModal
           isEditing={!!isEditingId}
+          isSubmitting={isSubmitting}
           formData={formData}
           setFormData={setFormData}
           onClose={() => setShowModal(false)}
@@ -257,10 +273,10 @@ const Events = () => {
                 <button
                   disabled={isDeletingLocal}
                   onClick={confirmDeleteEvent}
-                  className="w-full py-4 rounded-2xl bg-rose-600 text-white font-bold transition-all hover:bg-rose-700 hover:scale-[1.02] shadow-lg shadow-rose-600/20 flex items-center justify-center gap-2"
+                  className="w-full py-4 rounded-2xl bg-rose-600 text-white font-bold transition-all hover:bg-rose-700 hover:scale-[1.02] shadow-lg shadow-rose-600/20 flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isDeletingLocal ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <Loader2 size={18} className="animate-spin" />
                   ) : (
                     <Trash2 size={18} />
                   )}
@@ -304,10 +320,8 @@ const EventCard = ({ event, onEdit, onDelete }) => {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#090c10] via-transparent to-transparent opacity-80" />
 
-        {/* ✅ FIXED FANCY GLOSSY DATE BADGE (Light & Dark Mode Compatible) */}
         <div className="absolute top-4 left-4 z-20 group/date">
           <div className="relative overflow-hidden rounded-2xl bg-white/90 dark:bg-black/60 backdrop-blur-2xl border border-slate-200 dark:border-white/20 p-3 min-w-[75px] text-center shadow-[0_10px_30px_rgba(0,0,0,0.15)] dark:shadow-2xl transition-all duration-500 group-hover/date:scale-110 group-hover/date:border-indigo-500/50">
-            {/* Glossy Top Surface Shine */}
             <div className="absolute inset-x-0 top-0 h-[40%] bg-gradient-to-b from-white/40 dark:from-white/10 to-transparent pointer-events-none" />
 
             <span className="relative block text-[10px] font-black tracking-[0.25em] text-indigo-600 dark:text-indigo-300 uppercase mb-1">
@@ -365,6 +379,7 @@ const EventCard = ({ event, onEdit, onDelete }) => {
 /* ================= COMPONENT: Event Modal ================= */
 const EventModal = ({
   isEditing,
+  isSubmitting,
   formData,
   setFormData,
   onClose,
@@ -482,9 +497,19 @@ const EventModal = ({
           </div>
           <button
             type="submit"
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-black text-lg shadow-xl flex items-center justify-center gap-2"
+            disabled={isSubmitting}
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-black text-lg shadow-xl flex items-center justify-center gap-2 hover:scale-[1.01] transition-transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            <Save size={20} /> {isEditing ? "Update" : "Publish"}
+            {isSubmitting ? (
+              <Loader2 className="animate-spin h-6 w-6" />
+            ) : (
+              <Save size={20} />
+            )}
+            {isSubmitting
+              ? "Notifying Users..."
+              : isEditing
+              ? "Update & Send Mail"
+              : "Publish & Send Mail"}
           </button>
         </form>
       </div>
@@ -492,23 +517,52 @@ const EventModal = ({
   );
 };
 
-const GlassInput = ({ label, icon: Icon, ...props }) => (
-  <div className="group space-y-2">
-    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">
-      {label}
-    </label>
-    <div className="relative">
-      {Icon && (
-        <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-violet-500" />
-      )}
-      <input
-        {...props}
-        className={`w-full p-4 rounded-2xl bg-slate-50 dark:bg-[#0d1117]/50 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-violet-500/50 transition-all ${
-          Icon ? "pl-12" : ""
-        }`}
-      />
+const GlassInput = ({ label, icon: Icon, ...props }) => {
+  const inputRef = useRef(null);
+
+  return (
+    <div className="group space-y-2">
+      <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">
+        {label}
+      </label>
+
+      <div className="relative">
+        {/* LEFT ICON */}
+        {Icon && (
+          <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-violet-500" />
+        )}
+
+        <input
+          ref={inputRef}
+          {...props}
+          onClick={() => inputRef.current?.showPicker?.()}
+          className={`w-full p-4 rounded-2xl
+            bg-slate-50 dark:bg-[#0d1117]/50
+            border border-slate-200 dark:border-slate-700
+            text-slate-900 dark:text-white
+            font-medium outline-none
+            focus:ring-2 focus:ring-violet-500/50
+            transition-all
+            appearance-none
+            ${Icon ? "pl-12 pr-12" : "pr-12"}`}
+        />
+        {/* RIGHT ICON (CUSTOM LUCIDE REPLACING BROWSER ICON) */}
+        {(props.type === "date" || props.type === "time") && (
+          <button
+            type="button"
+            onClick={() => inputRef.current?.showPicker?.()}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 hover:text-violet-500 transition-colors"
+          >
+            {props.type === "date" ? (
+              <CalendarIcon size={18} />
+            ) : (
+              <Clock size={18} />
+            )}
+          </button>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default Events;

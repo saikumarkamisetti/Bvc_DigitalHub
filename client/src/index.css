@@ -164,3 +164,9 @@
 .heart-pop {
   animation: heartPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
+/* ===== Dark mode date picker icon fix ===== */
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.2);
+  cursor: pointer;
+}

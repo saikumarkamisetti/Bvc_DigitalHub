@@ -79,7 +79,7 @@ const Login = () => {
         {/* ================= BACK BUTTON ================= */}
         <button
           onClick={() => navigate("/")}
-          className="absolute top-5 left-5 md:top-6 md:left-6 z-[100] p-2.5 rounded-xl bg-white/50 dark:bg-white/5 text-slate-500 hover:text-indigo-500 hover:bg-white dark:hover:bg-white/10 transition-all duration-300 group/back shadow-sm border border-slate-200 dark:border-white/10 backdrop-blur-md active:scale-90"
+          className="absolute top-5 left-5 md:top-6 md:left-6 z-[100] p-2.5 rounded-xl bg-white/50 dark:bg-white/5 text-slate-500 hover:text-cyan-500 hover:bg-white dark:hover:bg-white/10 transition-all duration-300 group/back shadow-sm border border-slate-200 dark:border-white/10 backdrop-blur-md active:scale-90"
           title="Back to Landing"
         >
           <ArrowLeft className="w-5 h-5 group-hover/back:-translate-x-1 transition-transform" />

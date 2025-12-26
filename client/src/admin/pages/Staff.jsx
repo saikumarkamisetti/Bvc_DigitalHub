@@ -376,7 +376,10 @@ const Staff = () => {
 };
 
 const StaffCard = ({ s, onView, onEdit, onDelete }) => (
-  <div className="group relative bg-white dark:bg-[#161b22]/60 backdrop-blur-xl rounded-[2.5rem] border border-slate-200 dark:border-white/5 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/20 flex flex-col">
+  <div
+    onClick={onView}
+    className="group relative cursor-pointer bg-white dark:bg-[#161b22]/60 backdrop-blur-xl rounded-[2.5rem] border border-slate-200 dark:border-white/5 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/20 flex flex-col"
+  >
     <div className="h-52 relative overflow-hidden shrink-0">
       {s.photo ? (
         <img
@@ -419,19 +422,28 @@ const StaffCard = ({ s, onView, onEdit, onDelete }) => (
 
       <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-white/5 mt-auto">
         <button
-          onClick={onView}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevents double-triggering the parent's onClick
+            onView();
+          }}
           className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-600 dark:bg-indigo-500/10 text-white dark:text-indigo-300 font-bold text-sm hover:bg-indigo-700 dark:hover:bg-indigo-500/20 transition-all shadow-md shadow-indigo-500/20"
         >
           View Profile
         </button>
         <button
-          onClick={onEdit}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevents redirecting to profile when clicking Edit
+            onEdit();
+          }}
           className="p-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:bg-indigo-500 hover:text-white dark:hover:bg-indigo-500 transition-all"
         >
           <Edit2 size={16} />
         </button>
         <button
-          onClick={onDelete}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevents redirecting to profile when clicking Delete
+            onDelete();
+          }}
           className="p-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:bg-rose-500 hover:text-white dark:hover:bg-rose-500 transition-all"
         >
           <Trash2 size={16} />
@@ -584,7 +596,6 @@ const StaffForm = ({
   </div>
 );
 
-
 const Input = ({ label, ...props }) => (
   <div className="space-y-1.5">
     <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
@@ -691,17 +702,16 @@ const StaffDetailsModal = ({ staff, onClose }) => {
                 </div>
               </div>
               <div className="p-4 md:p-6 rounded-2xl md:rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 group hover:border-emerald-500/50 transition-all flex md:flex-col items-center md:items-start gap-4 md:gap-0">
-  <Mail className="w-5 h-5 text-emerald-500 md:mb-2 shrink-0" />
-  <div>
-    <h4 className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5 md:mb-1">
-      Email
-    </h4>
-    <p className="text-sm md:text-base font-bold text-slate-900 dark:text-white break-all">
-      {staff.email || "Not provided"}
-    </p>
-  </div>
-</div>
-
+                <Mail className="w-5 h-5 text-emerald-500 md:mb-2 shrink-0" />
+                <div>
+                  <h4 className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5 md:mb-1">
+                    Email
+                  </h4>
+                  <p className="text-sm md:text-base font-bold text-slate-900 dark:text-white break-all">
+                    {staff.email || "Not provided"}
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Subject Expertise */}

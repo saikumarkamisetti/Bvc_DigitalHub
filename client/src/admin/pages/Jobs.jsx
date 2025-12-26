@@ -14,7 +14,8 @@ import {
   DollarSign,
   Link as LinkIcon,
   Sparkles,
-  AlertTriangle, // ✅ Added for delete modal
+  AlertTriangle,
+  Loader2, // ✅ Added for Lucid loading spinner
 } from "lucide-react";
 import { toast } from "react-toastify";
 import adminAPI from "../../services/adminApi";
@@ -25,8 +26,9 @@ const Jobs = () => {
   const [showModal, setShowModal] = useState(false);
   const [isEditingId, setIsEditingId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // ✅ New state for reactive button loading
 
-  // ✅ NEW: Delete Modal States
+  // ✅ Delete Modal States
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [jobToDelete, setJobToDelete] = useState(null);
   const [isDeletingLocal, setIsDeletingLocal] = useState(false);
@@ -92,17 +94,15 @@ const Jobs = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    toast.info(isEditingId ? "Updating job..." : "Posting job...", {
-      autoClose: 1000,
-    });
+    setIsSubmitting(true); // ✅ Start Lucid Loading
 
     try {
       if (isEditingId) {
         await adminAPI.put(`/admin/jobs/${isEditingId}`, formData);
-        toast.success("Job updated successfully! 🚀");
+        toast.success("Job updated & Mail sent to all users! 🚀"); // ✅ Updated message
       } else {
         await adminAPI.post("/admin/jobs", formData);
-        toast.success("Job posted successfully! 🎉");
+        toast.success("Job posted & Mail sent to all users! 🎉"); // ✅ Updated message
       }
 
       const res = await adminAPI.get("/admin/jobs");
@@ -111,10 +111,12 @@ const Jobs = () => {
     } catch (error) {
       console.error(error);
       toast.error("Operation failed. Please check inputs.");
+    } finally {
+      setIsSubmitting(false); // ✅ Stop Lucid Loading
     }
   };
 
-  // --- ✅ NEW: FANCY DELETE HANDLER ---
+  // --- ✅ FANCY DELETE HANDLER ---
   const confirmDeleteJob = async () => {
     if (!jobToDelete) return;
     setIsDeletingLocal(true);
@@ -203,7 +205,7 @@ const Jobs = () => {
         {/* Jobs Grid */}
         {isLoading ? (
           <div className="flex justify-center pt-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600"></div>
+            <Loader2 className="animate-spin h-12 w-12 text-cyan-600" />
           </div>
         ) : filteredJobs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -236,6 +238,7 @@ const Jobs = () => {
       {showModal && (
         <JobModal
           isEditing={!!isEditingId}
+          isSubmitting={isSubmitting} // ✅ Pass state to modal
           formData={formData}
           setFormData={setFormData}
           onClose={() => setShowModal(false)}
@@ -279,7 +282,7 @@ const Jobs = () => {
                   }`}
                 >
                   {isDeletingLocal ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <Trash2 size={18} />
                   )}
@@ -380,7 +383,14 @@ const JobCard = ({ job, onEdit, onDelete }) => {
 };
 
 /* ================= COMPONENT: Job Modal ================= */
-const JobModal = ({ isEditing, formData, setFormData, onClose, onSubmit }) => {
+const JobModal = ({
+  isEditing,
+  isSubmitting,
+  formData,
+  setFormData,
+  onClose,
+  onSubmit,
+}) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -511,10 +521,19 @@ const JobModal = ({ isEditing, formData, setFormData, onClose, onSubmit }) => {
           </div>
           <button
             type="submit"
-            className="w-full mt-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-lg shadow-xl shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+            disabled={isSubmitting} // ✅ Disable button during processing
+            className="w-full mt-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-lg shadow-xl shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            <Save size={20} />
-            {isEditing ? "Update Job Posting" : "Publish Job"}
+            {isSubmitting ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <Save size={20} />
+            )}
+            {isSubmitting
+              ? "Processing & Sending Mails..."
+              : isEditing
+              ? "Update & Notify Users"
+              : "Publish & Notify Users"}
           </button>
         </form>
       </div>

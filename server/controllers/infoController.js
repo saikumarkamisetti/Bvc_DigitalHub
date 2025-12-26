@@ -1,6 +1,23 @@
 import Staff from "../models/Staff.js";
 import Event from "../models/Event.js";
 import Job from "../models/Job.js";
+import User from "../models/User.js"; // ✅ Added for student count
+import nodemailer from "nodemailer";
+
+// 📊 Get dashboard stats (Public)
+export const getStats = async (req, res) => {
+  try {
+    const studentCount = await User.countDocuments();
+    const staffCount = await Staff.countDocuments();
+
+    res.status(200).json({
+      students: studentCount,
+      staff: staffCount,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch stats" });
+  }
+};
 
 // 👨‍🏫 Get all staff
 export const getStaff = async (req, res) => {
@@ -44,8 +61,6 @@ export const getEventById = async (req, res) => {
   }
 };
 
-import nodemailer from "nodemailer";
-
 export const applyForJob = async (req, res) => {
   const { name, email, phone } = req.body;
 
@@ -85,4 +100,3 @@ export const applyForJob = async (req, res) => {
     res.status(500).json({ message: "Failed to send email" });
   }
 };
-

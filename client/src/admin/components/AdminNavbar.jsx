@@ -72,7 +72,7 @@ const AdminNavbar = () => {
               icon={LayoutDashboard}
               label="Dashboard"
             />
-            <NavItem to="/admin/users" icon={Users} label="Students" />
+            <NavItem to="/admin/users" icon={Users} label="Users" />
             <NavItem to="/admin/staff" icon={UserCog} label="Staff" />
             <NavItem to="/admin/events" icon={Calendar} label="Events" />
             <NavItem to="/admin/jobs" icon={Briefcase} label="Jobs" />

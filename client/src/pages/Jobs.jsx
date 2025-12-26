@@ -144,7 +144,11 @@ const JobCard = ({ job }) => {
   };
 
   return (
-    <div className="group relative bg-white dark:bg-[#181a25] rounded-[2.5rem] border border-slate-200 dark:border-white/5 p-8 flex flex-col h-full transition-all duration-500 hover:-translate-y-2 hover:shadow-xl hover:shadow-cyan-500/10 dark:hover:shadow-cyan-500/5 hover:border-cyan-500/30 overflow-hidden">
+    <div
+      // ✅ Added onClick and cursor-pointer to the main card container
+      onClick={() => navigate(`/jobs/${job._id}/apply`)}
+      className="group relative cursor-pointer bg-white dark:bg-[#181a25] rounded-[2.5rem] border border-slate-200 dark:border-white/5 p-8 flex flex-col h-full transition-all duration-500 hover:-translate-y-2 hover:shadow-xl hover:shadow-cyan-500/10 dark:hover:shadow-cyan-500/5 hover:border-cyan-500/30 overflow-hidden"
+    >
       {/* Top Gradient Line on Hover */}
       <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
 
@@ -203,7 +207,10 @@ const JobCard = ({ job }) => {
         </p>
 
         <button
-          onClick={() => navigate(`/jobs/${job._id}/apply`)}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevents double-triggering the parent div's onClick
+            navigate(`/jobs/${job._id}/apply`);
+          }}
           className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black hover:bg-cyan-600 dark:hover:bg-cyan-400 dark:hover:text-white transition-all shadow-lg hover:shadow-cyan-500/25 active:scale-[0.98] group/btn"
         >
           Apply Now

@@ -1,42 +1,53 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { ToastContainer } from "react-toastify";
+import { Loader2 } from "lucide-react";
 import "react-toastify/dist/ReactToastify.css";
 
-// Pages
-import Landing from "./pages/Landing";
-import Signup from "./pages/Signup";
-import OTP from "./pages/OTP";
-import Login from "./pages/Login";
-import Home from "./pages/Home";
-import Projects from "./pages/Projects";
-import Profile from "./pages/Profile";
-import Staff from "./pages/Staff";
-import Events from "./pages/Events";
-import Jobs from "./pages/Jobs";
-import Onboarding from "./pages/Onboarding";
+// Components
+import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
-import ProjectDetails from "./pages/ProjectDetails";
-import EditProject from "./pages/EditProject";
-import StaffDetails from "./pages/StaffDetails";
-import EventDetails from "./pages/EventDetails";
-import JobApply from "./pages/JobApply";
+import AdminProtectedRoute from "./admin/components/AdminProtectedRoute";
+
+// Lazy Loaded Pages
+const Landing = lazy(() => import("./pages/Landing"));
+const Signup = lazy(() => import("./pages/Signup"));
+const OTP = lazy(() => import("./pages/OTP"));
+const Login = lazy(() => import("./pages/Login"));
+const Home = lazy(() => import("./pages/Home"));
+const Projects = lazy(() => import("./pages/Projects"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Staff = lazy(() => import("./pages/Staff"));
+const Events = lazy(() => import("./pages/Events"));
+const Jobs = lazy(() => import("./pages/Jobs"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const ProjectDetails = lazy(() => import("./pages/ProjectDetails"));
+const EditProject = lazy(() => import("./pages/EditProject"));
+const StaffDetails = lazy(() => import("./pages/StaffDetails"));
+const EventDetails = lazy(() => import("./pages/EventDetails"));
+const JobApply = lazy(() => import("./pages/JobApply"));
 
 // Admin Pages
-import AdminLogin from "./admin/pages/AdminLogin";
-import AdminDashboard from "./admin/pages/AdminDashboard";
-import AdminProtectedRoute from "./admin/components/AdminProtectedRoute";
-import AdminUsers from "./admin/pages/Users";
-import AdminStaff from "./admin/pages/Staff";
-import AdminEvents from "./admin/pages/Events";
-import AdminJobs from "./admin/pages/Jobs";
-import UserDetails from "./admin/pages/UserDetails";
+const AdminLogin = lazy(() => import("./admin/pages/AdminLogin"));
+const AdminDashboard = lazy(() => import("./admin/pages/AdminDashboard"));
+const AdminUsers = lazy(() => import("./admin/pages/Users"));
+const AdminStaff = lazy(() => import("./admin/pages/Staff"));
+const AdminEvents = lazy(() => import("./admin/pages/Events"));
+const AdminJobs = lazy(() => import("./admin/pages/Jobs"));
+const UserDetails = lazy(() => import("./admin/pages/UserDetails"));
 
 /**
- * ✅ NEW: UniversalProtectedRoute
- * Allows access if either 'token' (User) or 'adminToken' (Admin) exists.
- * Otherwise, redirects to login.
+ * ✅ GLOBAL LOADING COMPONENT
  */
+const LoadingOverlay = ({ message = "Loading..." }) => (
+  <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-white/60 dark:bg-[#030407]/80 backdrop-blur-sm transition-all">
+    <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
+    <p className="text-lg font-medium text-slate-600 dark:text-slate-300 animate-pulse">
+      {message}
+    </p>
+  </div>
+);
+
 const UniversalProtectedRoute = ({ children }) => {
   const isUser = !!localStorage.getItem("token");
   const isAdmin = !!localStorage.getItem("adminToken");
@@ -48,12 +59,12 @@ const UniversalProtectedRoute = ({ children }) => {
 };
 
 function App() {
-  // ✅ PERSISTENT THEME
-  const [dark, setDark] = useState(() => {
-    return localStorage.getItem("theme") === "dark";
-  });
+  const [dark, setDark] = useState(
+    () => localStorage.getItem("theme") === "dark"
+  );
 
-  // ✅ Apply theme and save preference
+  const [isProcessing, setIsProcessing] = useState(false);
+
   useEffect(() => {
     const html = document.documentElement;
     if (dark) {
@@ -67,30 +78,21 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* 🌊 THEME LIQUID WRAPPER */}
       <div
-        className={`theme-liquid-transition min-h-screen ${
+        className={`theme-liquid-transition min-h-screen flex flex-col ${
           dark ? "dark bg-[#030407]" : "bg-slate-50"
         }`}
       >
-        {/* 🌙 GLOBAL FANCY TOGGLE */}
+        {isProcessing && <LoadingOverlay message="Processing request..." />}
+
+        {/* 🌙 GLOBAL THEME TOGGLE */}
         <button
           onClick={() => setDark(!dark)}
-          className="fixed bottom-8 right-8 z-[100] w-16 h-16 rounded-full
-                     bg-white/40 dark:bg-black/40 backdrop-blur-3xl
-                     border border-white/40 dark:border-white/10
-                     flex items-center justify-center text-2xl cursor-pointer
-                     shadow-[0_20px_50px_rgba(0,0,0,0.1),_inset_0_0_15px_rgba(255,255,255,0.2)]
-                     dark:shadow-[0_20px_50px_rgba(0,0,0,0.8),_inset_0_0_15px_rgba(255,255,255,0.05)]
-                     transition-all duration-1000 ease-in-out hover:scale-110 active:scale-90 group"
+          className="fixed bottom-8 right-8 z-[100] w-16 h-16 rounded-full bg-white/40 dark:bg-black/40 backdrop-blur-3xl border border-white/40 dark:border-white/10 flex items-center justify-center text-2xl cursor-pointer shadow-lg transition-all duration-1000 ease-in-out hover:scale-110 active:scale-90 group"
         >
-          <div className="absolute inset-0 rounded-full overflow-hidden">
-            <div className="absolute top-[-100%] left-[-100%] w-[300%] h-[300%] bg-gradient-to-br from-white/20 via-transparent to-transparent rotate-45 group-hover:top-[-50%] group-hover:left-[-50%] transition-all duration-1000" />
-          </div>
-
           <div
             className={`relative z-10 transition-all duration-[1200ms] ${
-              dark ? "rotate-0 scale-100" : "rotate-[360deg] scale-110"
+              dark ? "rotate-0" : "rotate-[360deg]"
             }`}
           >
             {dark ? (
@@ -111,158 +113,165 @@ function App() {
           theme={dark ? "dark" : "light"}
         />
 
-        <Routes>
-          {/* ================= PUBLIC ================= */}
-          <Route path="/" element={<Landing />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/otp" element={<OTP />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/onboarding" element={<Onboarding />} />
+        <Suspense fallback={<LoadingOverlay message="Loading BVC Hub..." />}>
+          {/* Main Content Area */}
+          <div className="flex-grow">
+            <Routes>
+              {/* PUBLIC ROUTES */}
+              <Route path="/" element={<Landing />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/otp" element={<OTP />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/onboarding" element={<Onboarding />} />
 
-          {/* ================= ADMIN ================= */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route
-            path="/admin/dashboard"
-            element={
-              <AdminProtectedRoute>
-                <AdminDashboard />
-              </AdminProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/users"
-            element={
-              <AdminProtectedRoute>
-                <AdminUsers />
-              </AdminProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/users/:id"
-            element={
-              <AdminProtectedRoute>
-                <UserDetails />
-              </AdminProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/staff"
-            element={
-              <AdminProtectedRoute>
-                <AdminStaff />
-              </AdminProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/events"
-            element={
-              <AdminProtectedRoute>
-                <AdminEvents />
-              </AdminProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/jobs"
-            element={
-              <AdminProtectedRoute>
-                <AdminJobs />
-              </AdminProtectedRoute>
-            }
-          />
+              {/* ADMIN ROUTES */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <AdminProtectedRoute>
+                    <AdminDashboard />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <AdminProtectedRoute>
+                    <AdminUsers />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/users/:id"
+                element={
+                  <AdminProtectedRoute>
+                    <UserDetails />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/staff"
+                element={
+                  <AdminProtectedRoute>
+                    <AdminStaff />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/events"
+                element={
+                  <AdminProtectedRoute>
+                    <AdminEvents />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/jobs"
+                element={
+                  <AdminProtectedRoute>
+                    <AdminJobs />
+                  </AdminProtectedRoute>
+                }
+              />
 
-          {/* ================= SHARED ACCESS (USER + ADMIN) ================= */}
-          {/* 🚀 FIXED: Both Admins and Logged-in Users can see this page */}
-          <Route
-            path="/projects/:id"
-            element={
-              <UniversalProtectedRoute>
-                <ProjectDetails />
-              </UniversalProtectedRoute>
-            }
-          />
+              {/* SHARED PROTECTED ROUTES */}
+              <Route
+                path="/projects/:id"
+                element={
+                  <UniversalProtectedRoute>
+                    <ProjectDetails />
+                  </UniversalProtectedRoute>
+                }
+              />
 
-          {/* ================= USER ONLY PROTECTED ================= */}
-          <Route
-            path="/home"
-            element={
-              <ProtectedRoute>
-                <Home />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/projects"
-            element={
-              <ProtectedRoute>
-                <Projects />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/projects/edit/:id"
-            element={
-              <ProtectedRoute>
-                <EditProject />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/staff"
-            element={
-              <ProtectedRoute>
-                <Staff />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/staff/:id"
-            element={
-              <ProtectedRoute>
-                <StaffDetails />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/events"
-            element={
-              <ProtectedRoute>
-                <Events />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/events/:id"
-            element={
-              <ProtectedRoute>
-                <EventDetails />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/jobs"
-            element={
-              <ProtectedRoute>
-                <Jobs />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/jobs/:id/apply"
-            element={
-              <ProtectedRoute>
-                <JobApply />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+              {/* USER PROTECTED ROUTES */}
+              <Route
+                path="/home"
+                element={
+                  <ProtectedRoute>
+                    <Home />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/projects"
+                element={
+                  <ProtectedRoute>
+                    <Projects />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/projects/edit/:id"
+                element={
+                  <ProtectedRoute>
+                    <EditProject />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/staff"
+                element={
+                  <ProtectedRoute>
+                    <Staff />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/staff/:id"
+                element={
+                  <ProtectedRoute>
+                    <StaffDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/events"
+                element={
+                  <ProtectedRoute>
+                    <Events />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/events/:id"
+                element={
+                  <ProtectedRoute>
+                    <EventDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/jobs"
+                element={
+                  <ProtectedRoute>
+                    <Jobs />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/jobs/:id/apply"
+                element={
+                  <ProtectedRoute>
+                    <JobApply />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </div>
+
+          {/* FOOTER - Visible on all pages */}
+          <Footer />
+        </Suspense>
       </div>
     </BrowserRouter>
   );

@@ -1,6 +1,9 @@
+import { useNavigate } from "react-router-dom"; // ✅ Added import
 import Navbar from "../components/Navbar";
 
 const Landing = () => {
+  const navigate = useNavigate(); // ✅ Initialize navigate
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#090c10] text-slate-900 dark:text-white transition-colors duration-300 font-sans selection:bg-indigo-500/30 overflow-x-hidden">
       {/* NAVBAR */}
@@ -65,11 +68,11 @@ const Landing = () => {
                   href="/login"
                   className="px-8 py-4 bg-white dark:bg-[#161b22] border border-slate-200 dark:border-slate-800 rounded-2xl font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-[#1c2128] hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-300 shadow-sm flex items-center justify-center"
                 >
-                  Sign In
+                  Log In
                 </a>
               </div>
 
-              {/* Social Proof / Stats (Optional decoration) */}
+              {/* Stats */}
               <div className="pt-4 flex items-center justify-center lg:justify-start gap-6 text-sm font-semibold text-slate-500 dark:text-slate-500">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-green-500"></div>
@@ -84,10 +87,8 @@ const Landing = () => {
 
             {/* RIGHT IMAGE AREA */}
             <div className="relative flex justify-center items-center perspective-1000">
-              {/* Decorative Blobs */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-tr from-indigo-500/20 via-purple-500/20 to-blue-500/20 blur-[60px] rounded-full animate-pulse-slow" />
 
-              {/* Card Container with 3D effect */}
               <div className="relative group transform transition-all duration-500 hover:scale-[1.02] hover:rotate-1">
                 <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-[2.5rem] blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
 
@@ -96,14 +97,12 @@ const Landing = () => {
                     <img
                       src="/bvc.png"
                       alt="BVC Digital Campus"
-                      // === CODE CHANGE HERE: object-cover -> object-contain ===
                       className="w-full h-full object-contain"
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
                         e.currentTarget.parentElement.innerHTML = `<div class="text-center p-10"><span class="text-6xl">🎓</span><p class="mt-4 font-bold text-slate-400">BVC Digital Hub</p></div>`;
                       }}
                     />
-                    {/* Overlay Gradient */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
                       <p className="text-white font-bold">
                         Explore Campus Life
@@ -118,7 +117,6 @@ const Landing = () => {
 
         {/* ================= FEATURES SECTION ================= */}
         <section className="py-32 relative">
-          {/* Section Header */}
           <div className="text-center max-w-2xl mx-auto mb-16 px-6">
             <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-4">
               Everything you need to{" "}
@@ -133,23 +131,27 @@ const Landing = () => {
           </div>
 
           <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* ✅ Added onClick handlers to redirect to Login */}
             <FeatureCard
               icon="🚀"
               title="Student Projects"
               desc="Showcase your academic innovation. Upload code, demos, and documentation to build a portfolio that stands out."
               gradient="from-blue-500 to-cyan-500"
+              onClick={() => navigate("/login")}
             />
             <FeatureCard
               icon="⚡"
               title="Faculty & Events"
               desc="Direct connection with mentors. Stay updated on workshops, hackathons, and departmental seminars."
               gradient="from-violet-500 to-purple-500"
+              onClick={() => navigate("/login")}
             />
             <FeatureCard
               icon="💎"
               title="Placements"
               desc="Real-time tracking of hiring drives. Access preparation materials and track your application status instantly."
               gradient="from-fuchsia-500 to-pink-500"
+              onClick={() => navigate("/login")}
             />
           </div>
         </section>
@@ -158,8 +160,12 @@ const Landing = () => {
   );
 };
 
-const FeatureCard = ({ icon, title, desc, gradient }) => (
-  <div className="group relative bg-white dark:bg-[#161b22] rounded-[2rem] p-8 border border-slate-200 dark:border-slate-800 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 overflow-hidden">
+// ✅ Updated component to handle onClick and cursor-pointer
+const FeatureCard = ({ icon, title, desc, gradient, onClick }) => (
+  <div
+    onClick={onClick}
+    className="group relative cursor-pointer bg-white dark:bg-[#161b22] rounded-[2rem] p-8 border border-slate-200 dark:border-slate-800 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 overflow-hidden"
+  >
     {/* Hover Gradient Background */}
     <div
       className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 blur-2xl rounded-full transition-opacity duration-500 -mr-10 -mt-10`}

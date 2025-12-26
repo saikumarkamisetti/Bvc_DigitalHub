@@ -11,15 +11,11 @@ import {
   Share2,
   Sparkles,
   Tag,
-  CalendarPlus,
   Copy,
+  ExternalLink,
 } from "lucide-react";
 
-/**
- * MUST MATCH YOUR NAVBAR HEIGHT
- */
-const NAVBAR_HEIGHT_MOBILE = 72;
-const NAVBAR_HEIGHT_DESKTOP = 88;
+const NAVBAR_HEIGHT = 70;
 
 const EventDetails = () => {
   const { id } = useParams();
@@ -50,13 +46,23 @@ const EventDetails = () => {
 
   const handleCopyLocation = () => {
     navigator.clipboard.writeText(event.location);
-    toast.info("Location copied");
+    toast.success("Location copied!");
+  };
+
+  const handleGoogleMapsRedirect = () => {
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      event.location
+    )}`;
+    window.open(url, "_blank");
   };
 
   if (loading) {
     return (
-      <div className="h-[100dvh] flex items-center justify-center bg-slate-100 dark:bg-[#05070a]">
-        <div className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      <div className="h-screen flex items-center justify-center bg-[#030407]">
+        <div className="relative flex items-center justify-center">
+          <div className="w-16 h-16 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+          <div className="absolute w-8 h-8 border-4 border-fuchsia-500/20 border-b-fuchsia-500 rounded-full animate-spin-slow" />
+        </div>
       </div>
     );
   }
@@ -64,171 +70,168 @@ const EventDetails = () => {
   if (!event) return null;
 
   return (
-    <div className="h-[100dvh] w-full bg-slate-100 text-slate-900 dark:bg-[#05070a] dark:text-white overflow-hidden relative transition-colors">
+    <div className="min-h-screen w-full bg-[#f8fafc] dark:bg-[#030407] text-slate-900 dark:text-white relative transition-all duration-700 flex flex-col">
       <Navbar />
 
-      {/* ✨ Ambient Glow */}
-      <div className="pointer-events-none fixed inset-0">
-        <div className="absolute -top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-indigo-500/20 dark:bg-indigo-600/25 blur-[180px]" />
-        <div className="absolute -bottom-1/3 right-1/4 w-[450px] h-[450px] bg-fuchsia-500/20 dark:bg-fuchsia-600/25 blur-[180px]" />
+      <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
+        <div className="absolute top-[-10%] left-[-5%] w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-indigo-600/25 blur-[100px] md:blur-[160px] animate-pulse rounded-full" />
+        <div className="absolute bottom-[-5%] right-[-5%] w-[350px] md:w-[700px] h-[350px] md:h-[700px] bg-fuchsia-600/15 blur-[120px] md:blur-[200px] rounded-full" />
       </div>
 
       <main
-        className="relative z-10 w-full max-w-6xl mx-auto px-4 pb-4 flex flex-col min-h-0 mt-3"
-        style={{
-          paddingTop: NAVBAR_HEIGHT_MOBILE,
-          height: `calc(100dvh - ${NAVBAR_HEIGHT_MOBILE}px)`,
-        }}
+        className="relative z-10 w-full max-w-6xl mx-auto px-4 md:px-8 flex flex-col flex-1 pb-10"
+        style={{ paddingTop: NAVBAR_HEIGHT + 20 }}
       >
-        {/* HEADER */}
-        <div className="flex items-center justify-between mb-3 shrink-0">
+        <div className="flex items-center justify-between mb-6 shrink-0">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl 
-              bg-white/70 dark:bg-white/10 
-              backdrop-blur-md 
-              border border-slate-200 dark:border-white/10 
-              text-xs font-semibold 
-              hover:bg-white dark:hover:bg-white/20 
-              transition"
+            className="group flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white/10 dark:bg-white/5 backdrop-blur-2xl border border-white/20 text-xs font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-lg active:scale-95"
           >
             <ArrowLeft
-              size={14}
-              className="text-indigo-500 dark:text-indigo-400"
+              size={16}
+              className="group-hover:-translate-x-1 transition-transform"
             />
             Back
           </button>
-
           <button
             onClick={() => {
               navigator.clipboard.writeText(window.location.href);
-              toast.success("Link copied");
+              toast.success("Event link copied!");
             }}
-            className="p-2 rounded-xl 
-              bg-white/70 dark:bg-white/10 
-              border border-slate-200 dark:border-white/10 
-              hover:bg-white dark:hover:bg-white/20 
-              transition"
+            className="p-3 rounded-2xl bg-white/10 dark:bg-white/5 border border-white/20 hover:scale-110 active:scale-90 transition-all shadow-lg"
           >
-            <Share2 size={16} />
+            <Share2 size={20} className="text-fuchsia-500" />
           </button>
         </div>
 
-        {/* GRID */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-0">
-          {/* LEFT BANNER */}
-          <div
-            className="lg:col-span-5 min-h-[220px] lg:min-h-0 rounded-2xl overflow-hidden relative 
-            border border-slate-200 dark:border-white/10 
-            bg-white dark:bg-black 
-            shadow-[0_0_50px_rgba(99,102,241,0.25)]"
-          >
-            <img
-              src={event.banner || "https://via.placeholder.com/800"}
-              alt={event.title}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-
-            <div className="absolute bottom-4 left-4 right-4">
-              <div className="flex items-center gap-1 mb-1">
-                <Sparkles
-                  size={12}
-                  className="text-indigo-500 dark:text-indigo-400 animate-spin-slow"
+        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:gap-10">
+          {/* LEFT: BANNER */}
+          <div className="lg:col-span-5 relative group shrink-0">
+            <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-cyan-500 rounded-[2.5rem] blur-md opacity-20 transition duration-1000" />
+            <div className="relative w-full aspect-[4/3] lg:h-full rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl bg-[#0a0a0a]">
+              {/* ✅ Conditional Check for Image */}
+              {event.banner ? (
+                <img
+                  src={event.banner}
+                  alt={event.title}
+                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-90"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src =
+                      "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=1000&auto=format&fit=crop";
+                  }}
                 />
-                <span className="text-[10px] tracking-widest font-bold text-indigo-600 dark:text-indigo-300">
-                  FEATURED EVENT
-                </span>
+              ) : (
+                /* ✅ Display this if event.banner is null/empty */
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-black p-10 text-center">
+                  <div className="p-4 rounded-full bg-indigo-500/10 mb-4 border border-indigo-500/20">
+                    <Sparkles className="w-12 h-12 text-indigo-400 animate-pulse" />
+                  </div>
+                  <p className="text-gray-500 text-xs font-black uppercase tracking-[0.2em]">
+                    No Preview Available
+                  </p>
+                </div>
+              )}
+
+              <div className="absolute inset-0 bg-gradient-to-t from-[#030407] via-[#030407]/40 to-transparent" />
+
+              <div className="absolute bottom-8 left-8 right-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-1 w-8 bg-indigo-500 rounded-full" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">
+                    BVC Exclusive
+                  </span>
+                </div>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-[1.1] break-words drop-shadow-2xl">
+                  {event.title}
+                </h1>
               </div>
-              <h1 className="text-xl lg:text-3xl font-black text-white drop-shadow">
-                {event.title}
-              </h1>
             </div>
           </div>
 
-          {/* RIGHT PANEL */}
-          <div className="lg:col-span-7 flex flex-col gap-3 min-h-0">
-            {/* INFO */}
-            <div className="grid grid-cols-3 gap-2 shrink-0">
-              <InfoBox
+          <div className="lg:col-span-7 flex flex-col gap-6">
+            <div className="grid grid-cols-3 gap-3 md:gap-4 shrink-0">
+              <GlossyStat
                 icon={Calendar}
                 label="Date"
-                value={new Date(event.date).toLocaleDateString()}
-                color="indigo"
+                value={new Date(event.date).toLocaleDateString("en-US", {
+                  day: "2-digit",
+                  month: "short",
+                })}
+                color="from-indigo-600 to-blue-500"
               />
-              <InfoBox
+              <GlossyStat
                 icon={Clock}
                 label="Time"
                 value={event.time}
-                color="fuchsia"
+                color="from-fuchsia-600 to-pink-500"
               />
-              <InfoBox
+              <GlossyStat
                 icon={MapPin}
                 label="Venue"
                 value={event.location}
-                color="cyan"
-                onClick={handleCopyLocation}
+                color="from-cyan-600 to-teal-500"
+                onClick={handleGoogleMapsRedirect}
                 isClickable
               />
             </div>
 
-            {/* DESCRIPTION */}
-            <div
-              className="flex-1 rounded-2xl
-  bg-transparent
-  backdrop-blur-[22px]
-  border border-white/20 dark:border-white/10
-  p-4 flex flex-col min-h-0
-  shadow-[0_0_40px_rgba(99,102,241,0.25)]
-  relative overflow-hidden"
-            >
-              {/* Glass overlay */}
-              <div
-                className="absolute inset-0 rounded-2xl 
-    bg-white/30 dark:bg-white/5 
-    pointer-events-none"
-              />
-
-              {/* CONTENT */}
-              <div className="relative z-10 flex flex-col min-h-0">
-                {/* your existing content stays here */}
-              </div>
-              <div className="flex items-center gap-2 mb-3 shrink-0">
-                <Tag
-                  size={12}
-                  className="text-indigo-500 dark:text-indigo-400"
-                />
-                <span className="text-[10px] tracking-widest font-bold text-indigo-600 dark:text-indigo-300">
-                  {event.category || "GENERAL"}
-                </span>
+            <div className="relative rounded-[2.5rem] bg-white/40 dark:bg-white/[0.02] backdrop-blur-3xl border border-white/40 dark:border-white/10 p-8 lg:p-10 flex flex-col shadow-2xl overflow-hidden">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-slate-900/5 dark:bg-white/5 border border-slate-900/10 dark:border-white/10">
+                  <Tag size={14} className="text-indigo-500" />
+                  <span className="text-[11px] font-black uppercase tracking-widest text-slate-600 dark:text-indigo-300">
+                    {event.category || "General"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Sparkles
+                    className="text-fuchsia-500 animate-pulse"
+                    size={20}
+                  />
+                  <span className="text-[10px] font-bold text-fuchsia-500 uppercase">
+                    Live
+                  </span>
+                </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
-                <p className="text-sm lg:text-base leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-line">
-                  {event.description}
+              <div className="mb-8">
+                <p className="text-base md:text-lg lg:text-xl leading-relaxed text-slate-700 dark:text-slate-200 whitespace-pre-line font-medium opacity-90">
+                  "{event.description}"
                 </p>
               </div>
 
-              <div className="pt-3 mt-3 border-t border-slate-200 dark:border-white/10 flex items-center gap-2 shrink-0">
+              <div className="pt-8 border-t border-slate-900/10 dark:border-white/10 flex items-center gap-4">
                 <button
                   onClick={handleCopyLocation}
-                  className="p-2 rounded-xl 
-                    bg-white/70 dark:bg-white/10 
-                    border border-slate-200 dark:border-white/10 
-                    hover:bg-white dark:hover:bg-white/20 transition"
+                  className="p-5 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 transition-all active:scale-90 shadow-md group"
                 >
-                  <Copy size={16} />
+                  <Copy
+                    size={24}
+                    className="group-hover:rotate-6 transition-transform text-indigo-500"
+                  />
                 </button>
 
+                {/* Increased size of calendar button */}
                 <button
                   onClick={handleAddToCalendar}
-                  className="flex-1 py-2.5 rounded-xl 
-                    bg-gradient-to-r from-indigo-600 to-fuchsia-600 
-                    font-bold text-xs tracking-widest text-white 
-                    hover:scale-[1.02] transition 
-                    shadow-[0_0_35px_rgba(99,102,241,0.6)]"
+                  className="flex-1 group relative overflow-hidden 
+    py-4 md:py-6 /* 👈 Reduced padding on mobile, larger on desktop */
+    rounded-2xl 
+    bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-rose-600
+    text-white font-black 
+    text-[10px] md:text-base /* 👈 Smaller text on tiny screens */
+    tracking-[0.1em] md:tracking-[0.2em] /* 👈 Tightened tracking for mobile */
+    uppercase
+    shadow-[0_20px_40px_-10px_rgba(217,70,239,0.5)] 
+    hover:scale-[1.02] active:scale-95 transition-all duration-500"
                 >
-                  ADD TO CALENDAR
+                  <span className="relative z-10 flex items-center justify-center gap-2 md:gap-4">
+                    <span className="whitespace-nowrap">Add To Calendar</span>
+                    <ExternalLink className="w-4 h-4 md:w-5 md:h-5" />{" "}
+                    {/* 👈 Responsive icon size */}
+                  </span>
+                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                 </button>
               </div>
             </div>
@@ -236,59 +239,50 @@ const EventDetails = () => {
         </div>
       </main>
 
-      {/* STYLES */}
       <style>{`
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { 
+          background: linear-gradient(to bottom, #6366f1, #d946ef); 
+          border-radius: 10px; 
         }
-        .animate-spin-slow {
-          animation: spin-slow 10s linear infinite;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(99,102,241,0.6);
-          border-radius: 20px;
-        }
-
-        @media (min-width: 1024px) {
-          main {
-            padding-top: ${NAVBAR_HEIGHT_DESKTOP}px !important;
-            height: calc(100dvh - ${NAVBAR_HEIGHT_DESKTOP}px) !important;
-          }
-        }
+        .animate-spin-slow { animation: spin 3s linear infinite; }
       `}</style>
     </div>
   );
 };
 
-const InfoBox = ({ icon: Icon, label, value, color, onClick, isClickable }) => {
-  const colors = {
-    indigo: "text-indigo-500 dark:text-indigo-400",
-    fuchsia: "text-fuchsia-500 dark:text-fuchsia-400",
-    cyan: "text-cyan-500 dark:text-cyan-400",
-  };
-
-  return (
+/* 💎 UPDATED: COMPACT GLOSSY STAT */
+const GlossyStat = ({
+  icon: Icon,
+  label,
+  value,
+  color,
+  onClick,
+  isClickable,
+}) => (
+  <div
+    onClick={onClick}
+    className={`group flex flex-col items-center justify-center py-3 px-2 rounded-2xl 
+      bg-white/70 dark:bg-white/[0.04] backdrop-blur-2xl border border-white/80 dark:border-white/10 
+      transition-all duration-500 shadow-md
+      ${
+        isClickable
+          ? "cursor-pointer hover:-translate-y-1 hover:bg-white/90 dark:hover:bg-white/10 active:scale-95"
+          : ""
+      }`}
+  >
     <div
-      onClick={onClick}
-      className={`rounded-xl 
-        bg-white/70 dark:bg-white/10 
-        backdrop-blur-md 
-        border border-slate-200 dark:border-white/10 
-        p-2 transition ${isClickable ? "cursor-pointer active:scale-95" : ""}`}
+      className={`p-2 rounded-xl bg-gradient-to-br ${color} mb-2 shadow-sm group-hover:scale-110 transition-transform`}
     >
-      <Icon size={14} className={colors[color]} />
-      <p className="text-[9px] uppercase tracking-widest text-slate-500 dark:text-slate-400 mt-1">
-        {label}
-      </p>
-      <p className="text-[11px] font-semibold truncate text-slate-800 dark:text-white">
-        {value}
-      </p>
+      <Icon size={16} className="text-white" />
     </div>
-  );
-};
+    <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1 text-center">
+      {label}
+    </p>
+    <p className="text-[11px] font-bold text-center line-clamp-1 w-full text-slate-800 dark:text-white px-1">
+      {value}
+    </p>
+  </div>
+);
 
 export default EventDetails;

@@ -128,8 +128,11 @@ const EventCard = ({ event }) => {
   const day = dateObj.getDate();
 
   return (
-    // Card Base: White in light mode, Dark Gray in dark mode
-    <div className="group relative bg-white dark:bg-[#181a25] rounded-[2.5rem] border border-slate-200 dark:border-white/5 overflow-hidden hover:border-purple-500/30 transition-all duration-500 hover:-translate-y-2 shadow-lg shadow-slate-200/50 dark:shadow-none hover:shadow-[0_10px_40px_-10px_rgba(168,85,247,0.2)] flex flex-col h-full">
+    // ✅ ADDED onClick and cursor-pointer to the main wrapper
+    <div
+      onClick={() => navigate(`/events/${event._id}`)}
+      className="group relative cursor-pointer bg-white dark:bg-[#181a25] rounded-[2.5rem] border border-slate-200 dark:border-white/5 overflow-hidden hover:border-purple-500/30 transition-all duration-500 hover:-translate-y-2 shadow-lg shadow-slate-200/50 dark:shadow-none hover:shadow-[0_10px_40px_-10px_rgba(168,85,247,0.2)] flex flex-col h-full"
+    >
       {/* IMAGE SECTION */}
       <div className="relative h-64 overflow-hidden">
         {/* ✅ FIXED DATE STICKER: Solid background and high contrast text */}
@@ -174,9 +177,18 @@ const EventCard = ({ event }) => {
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-xs font-bold text-slate-600 dark:text-slate-300">
             <Clock size={14} className="text-pink-500" /> {event.time}
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-xs font-bold text-slate-600 dark:text-slate-300">
+          {/* ✅ UPDATED: Location pill now links to Google Maps */}
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              event.location
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()} // Prevents the card's onClick from triggering
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-purple-100 dark:hover:bg-purple-500/20 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+          >
             <MapPin size={14} className="text-purple-500" /> {event.location}
-          </div>
+          </a>
         </div>
 
         <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-3 mb-8 leading-relaxed font-medium">
@@ -185,7 +197,10 @@ const EventCard = ({ event }) => {
 
         {/* Action Button */}
         <button
-          onClick={() => navigate(`/events/${event._id}`)}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevents triggering the parent div's onClick twice
+            navigate(`/events/${event._id}`);
+          }}
           className="mt-auto w-full py-4 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 hover:text-white hover:border-transparent transition-all duration-300 flex items-center justify-center gap-3 group/btn"
         >
           View Details
