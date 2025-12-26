@@ -164,38 +164,3 @@
 .heart-pop {
   animation: heartPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-
-/* ===============================
-   FINAL GLOBAL SELECT FIX
-   (ACTUALLY WORKS)
-   =============================== */
-
-/* Never allow horizontal overflow */
-html,
-body {
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-/* Native select base safety */
-select {
-  width: 100%;
-  max-width: 100%;
-  font-size: 16px; /* prevents mobile zoom */
-}
-
-/* 🔑 KEY FIX: when select is focused, LOCK the page */
-body:has(select:focus),
-body:has(select:active) {
-  overflow: hidden !important;
-  position: fixed;
-  width: 100%;
-}
-
-/* Mobile-specific safety */
-@media (max-width: 768px) {
-  select {
-    width: 100%;
-    max-width: 100%;
-  }
-}

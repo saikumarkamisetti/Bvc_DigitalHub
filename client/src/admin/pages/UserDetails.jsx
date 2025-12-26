@@ -135,94 +135,96 @@ const UserDetails = () => {
         className="flex-1 flex flex-col md:flex-row p-4 md:p-8 gap-6 md:overflow-hidden relative z-10"
         style={{ marginTop: NAVBAR_HEIGHT }}
       >
-        {/* LEFT PANEL */}
-        <div className="w-full md:w-[380px] shrink-0 bg-white/70 dark:bg-white/[0.03] backdrop-blur-3xl border border-slate-200 dark:border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 flex flex-col items-center shadow-xl dark:shadow-2xl relative h-fit md:h-full">
-          <button
-            onClick={() => navigate("/admin/users")}
-            className="absolute top-6 left-6 p-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 transition-all active:scale-95"
-          >
-            <ArrowLeft
-              size={18}
-              className="text-indigo-600 dark:text-indigo-400"
-            />
-          </button>
+        {/* LEFT PANEL - Profile Block Fixed to contain scrollbar */}
+        <div className="w-full md:w-[380px] shrink-0 bg-white/70 dark:bg-white/[0.03] backdrop-blur-3xl border border-slate-200 dark:border-white/10 rounded-[2rem] md:rounded-[2.5rem] shadow-xl dark:shadow-2xl relative h-fit md:h-full overflow-hidden">
+          <div className="h-full w-full overflow-y-auto custom-scrollbar-thin p-6 md:p-8 flex flex-col items-center">
+            <button
+              onClick={() => navigate("/admin/users")}
+              className="absolute top-6 left-6 p-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 transition-all active:scale-95"
+            >
+              <ArrowLeft
+                size={18}
+                className="text-indigo-600 dark:text-indigo-400"
+              />
+            </button>
 
-          <div className="relative group mb-6 md:mb-8 mt-4">
-            <div className="w-32 h-32 md:w-44 md:h-44 rounded-[2rem] md:rounded-[2.5rem] p-1 bg-gradient-to-br from-indigo-500 to-fuchsia-500 shadow-lg">
-              <div className="w-full h-full rounded-[1.8rem] md:rounded-[2.2rem] overflow-hidden bg-slate-100 dark:bg-[#0d1117] relative">
-                <img
-                  src={
-                    preview ||
-                    user.profilePic ||
-                    "https://via.placeholder.com/150"
-                  }
-                  className="w-full h-full object-cover"
-                  alt="Profile"
-                />
-                {editing && (
-                  <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center cursor-pointer opacity-100 transition-all duration-300 backdrop-blur-sm">
-                    <Camera size={24} className="mb-1 text-white" />
-                    <input
-                      type="file"
-                      hidden
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          setProfilePicFile(file);
-                          setPreview(URL.createObjectURL(file));
-                        }
-                      }}
-                    />
-                  </label>
-                )}
+            <div className="relative group mb-6 md:mb-8 mt-4">
+              <div className="w-32 h-32 md:w-44 md:h-44 rounded-[2rem] md:rounded-[2.5rem] p-1 bg-gradient-to-br from-indigo-500 to-fuchsia-500 shadow-lg">
+                <div className="w-full h-full rounded-[1.8rem] md:rounded-[2.2rem] overflow-hidden bg-slate-100 dark:bg-[#0d1117] relative">
+                  <img
+                    src={
+                      preview ||
+                      user.profilePic ||
+                      "https://via.placeholder.com/150"
+                    }
+                    className="w-full h-full object-cover"
+                    alt="Profile"
+                  />
+                  {editing && (
+                    <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center cursor-pointer opacity-100 transition-all duration-300 backdrop-blur-sm">
+                      <Camera size={24} className="mb-1 text-white" />
+                      <input
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            setProfilePicFile(file);
+                            setPreview(URL.createObjectURL(file));
+                          }
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          <h2 className="text-xl md:text-2xl font-black text-center mb-1 tracking-tight uppercase leading-tight px-4 break-words w-full">
-            {user.name}
-          </h2>
-          <p className="text-slate-500 dark:text-slate-400 text-[10px] md:text-xs mb-8 md:mb-10 text-center font-mono opacity-80 break-all px-4">
-            {user.email}
-          </p>
+            <h2 className="text-xl md:text-2xl font-black text-center mb-1 tracking-tight uppercase leading-tight px-4 break-words w-full">
+              {user.name}
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 text-[10px] md:text-xs mb-8 md:mb-10 text-center font-mono opacity-80 break-all px-4">
+              {user.email}
+            </p>
 
-          <div className="flex flex-col gap-3 w-full mt-auto">
-            {!editing ? (
-              <>
-                <button
-                  onClick={() => setEditing(true)}
-                  className="w-full py-3.5 md:py-4 rounded-xl md:rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-black font-bold flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md"
-                >
-                  <Edit2 size={18} /> Edit User
-                </button>
-                <button
-                  onClick={() => setShowUserDeleteModal(true)}
-                  className="w-full py-3.5 md:py-4 rounded-xl md:rounded-2xl bg-rose-50 dark:bg-rose-500/5 text-rose-600 dark:text-rose-500 font-bold border border-rose-200 dark:border-rose-500/10 active:bg-rose-100 transition-all flex items-center justify-center gap-2"
-                >
-                  <Trash2 size={18} /> Delete Account
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={updateUser}
-                  className="w-full py-3.5 md:py-4 rounded-xl md:rounded-2xl bg-indigo-600 text-white font-bold flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg"
-                >
-                  <Save size={18} /> Save Changes
-                </button>
-                <button
-                  onClick={() => {
-                    setEditing(false);
-                    setPreview(null);
-                    setNewPassword("");
-                  }}
-                  className="w-full py-3.5 md:py-4 rounded-xl md:rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 font-bold active:bg-slate-200 transition-all"
-                >
-                  Cancel
-                </button>
-              </>
-            )}
+            <div className="flex flex-col gap-3 w-full mt-auto">
+              {!editing ? (
+                <>
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="w-full py-3.5 md:py-4 rounded-xl md:rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-black font-bold flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md"
+                  >
+                    <Edit2 size={18} /> Edit User
+                  </button>
+                  <button
+                    onClick={() => setShowUserDeleteModal(true)}
+                    className="w-full py-3.5 md:py-4 rounded-xl md:rounded-2xl bg-rose-50 dark:bg-rose-500/5 text-rose-600 dark:text-rose-500 font-bold border border-rose-200 dark:border-rose-500/10 active:bg-rose-100 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Trash2 size={18} /> Delete Account
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={updateUser}
+                    className="w-full py-3.5 md:py-4 rounded-xl md:rounded-2xl bg-indigo-600 text-white font-bold flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg"
+                  >
+                    <Save size={18} /> Save Changes
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditing(false);
+                      setPreview(null);
+                      setNewPassword("");
+                    }}
+                    className="w-full py-3.5 md:py-4 rounded-xl md:rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 font-bold active:bg-slate-200 transition-all"
+                  >
+                    Cancel
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -288,7 +290,6 @@ const UserDetails = () => {
                   icon={Code}
                   onChange={(v) => setUser({ ...user, skills: v })}
                 />
-                {/* NEW PASSWORD FIELD ADDED HERE */}
                 <Input
                   label="New Password"
                   value={newPassword}
@@ -306,7 +307,6 @@ const UserDetails = () => {
                 <Layers size={18} /> Projects ({projects.length})
               </h3>
 
-              {/* FIXED PROJECT LIST FOR MOBILE */}
               <div className="grid grid-cols-1 gap-3 pb-10">
                 {projects.map((proj) => (
                   <div
@@ -324,7 +324,6 @@ const UserDetails = () => {
                       </div>
                     </div>
 
-                    {/* ACTIONS: Grouped tightly to avoid floating buttons */}
                     <div className="flex gap-2 shrink-0 ml-2 relative z-20">
                       <button
                         onClick={() => navigate(`/projects/${proj._id}`)}
@@ -372,8 +371,23 @@ const UserDetails = () => {
       />
 
       <style>{`
+        /* General Custom Scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.2); border-radius: 10px; }
+        
+        /* Fixed Thin Scrollbar for Block Internal Scrolling */
+        .custom-scrollbar-thin::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar-thin::-webkit-scrollbar-track { 
+          background: transparent; 
+          margin-top: 15px; 
+          margin-bottom: 15px; 
+        }
+        .custom-scrollbar-thin::-webkit-scrollbar-thumb { 
+          background: rgba(99, 102, 241, 0.3); 
+          border-radius: 20px; 
+        }
+        .custom-scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.5); }
+
         .scale-in { animation: scale-in 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
         @keyframes scale-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
       `}</style>
@@ -381,7 +395,7 @@ const UserDetails = () => {
   );
 };
 
-/* Reusable Components (Modal, Input, Select) remain essentially the same but with touch optimizations */
+/* Reusable Components */
 const Modal = ({
   show,
   onClose,

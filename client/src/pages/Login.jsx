@@ -152,7 +152,7 @@ const Login = () => {
 
           <div className="mb-8 text-center md:text-left">
             <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-2 tracking-tight uppercase">
-              Sign In
+              Log In
             </h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
               Enter your credentials to continue.
@@ -196,7 +196,7 @@ const Login = () => {
                   "Authenticating..."
                 ) : (
                   <>
-                    Sign In{" "}
+                    Log In{" "}
                     <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                   </>
                 )}

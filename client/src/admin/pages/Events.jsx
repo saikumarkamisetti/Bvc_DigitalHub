@@ -376,9 +376,9 @@ const EventModal = ({
     setFormData((prev) => ({ ...prev, bannerFile: e.target.files[0] }));
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md animate-in fade-in duration-300 flex justify-center pt-28 px-4">
-      <div className="relative w-full max-w-2xl bg-white dark:bg-[#161b22] backdrop-blur-2xl rounded-[2.5rem] shadow-3xl overflow-hidden border border-white/20 flex flex-col h-[85vh]">
-        <div className="h-24 bg-gradient-to-r from-violet-600 to-fuchsia-600 flex items-center px-8 shrink-0">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md animate-in fade-in duration-300 flex justify-center pt-24 px-4">
+      <div className="relative w-full max-w-3xl mx-auto bg-white dark:bg-[#161b22] backdrop-blur-2xl rounded-[2.5rem] md:rounded-[3rem] shadow-3xl overflow-hidden border border-white/20 flex flex-col h-[85dvh] md:h-[80vh] max-h-[800px] transition-all duration-300">
+        <div className="h-20 md:h-20 bg-gradient-to-r from-violet-600 to-fuchsia-600 flex items-center px-6 md:px-8 shrink-0">
           <h2 className="text-2xl font-black text-white flex items-center gap-3">
             {isEditing ? <Edit2 /> : <Sparkles />}{" "}
             {isEditing ? "Edit Event" : "New Event"}

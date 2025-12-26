@@ -1,20 +1,21 @@
-import { useState, useEffect } from "react"; // ✅ Import useEffect
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import API from "../services/api";
 import { toast } from "react-toastify";
 import {
+  User,
   Mail,
   Lock,
   ArrowRight,
   Sparkles,
-  LogIn,
+  Layers,
   ArrowLeft,
 } from "lucide-react";
 
-const Login = () => {
+const Signup = () => {
   const navigate = useNavigate();
 
-  // ✅ AUTO-REDIRECT LOGIC: Checks for token on component mount
+  // ✅ AUTO-REDIRECT: If token exists, skip signup and go to Home
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -23,35 +24,26 @@ const Login = () => {
   }, [navigate]);
 
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     password: "",
   });
 
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const res = await API.post("/auth/login", formData);
-      localStorage.setItem("token", res.data.token);
-      toast.success(res.data.message, {
-        autoClose: 1500,
-      });
-
-      setTimeout(() => {
-        navigate("/home");
-      }, 1800);
+      const res = await API.post("/auth/signup", formData);
+      toast.success(res.data.message, { autoClose: 1500 });
+      // Redirect to OTP verification after successful signup
+      navigate("/otp", { state: { email: formData.email } });
     } catch (error) {
-      toast.error(error.response?.data?.message, {
+      toast.error(error.response?.data?.message || "Signup failed", {
         autoClose: 1500,
       });
     } finally {
@@ -61,7 +53,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-[#05070a] text-slate-900 dark:text-white font-sans selection:bg-indigo-500/50 p-4 md:p-6 relative overflow-hidden transition-colors duration-500">
-      {/* ================= UNIQUE DYNAMIC BACKGROUND ================= */}
+      {/* ================= DYNAMIC GLOSSY BACKGROUND ================= */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 mix-blend-soft-light dark:mix-blend-overlay"></div>
         <div
@@ -75,17 +67,17 @@ const Login = () => {
       </div>
 
       {/* ================= THE "HYPER-GLASS" CARD ================= */}
-      <div className="relative z-10 w-full max-w-4xl h-auto md:h-[600px] grid grid-cols-1 md:grid-cols-2 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl dark:shadow-[0_0_50px_-12px_rgb(79,70,229,0.3)] border border-white/40 dark:border-white/10 animate-fade-in-up group transition-all duration-500">
-        {/* ================= BACK BUTTON ================= */}
+      <div className="relative z-10 w-full max-w-4xl h-auto md:h-[620px] grid grid-cols-1 md:grid-cols-2 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl dark:shadow-[0_0_50px_-12px_rgb(79,70,229,0.3)] border border-white/40 dark:border-white/10 animate-fade-in-up group transition-all duration-500">
+        {/* ================= BACK TO HOME BUTTON ================= */}
         <button
           onClick={() => navigate("/")}
-          className="absolute top-5 left-5 md:top-6 md:left-6 z-[100] p-2.5 rounded-xl bg-white/50 dark:bg-white/5 text-slate-500 hover:text-indigo-500 hover:bg-white dark:hover:bg-white/10 transition-all duration-300 group/back shadow-sm border border-slate-200 dark:border-white/10 backdrop-blur-md active:scale-90"
+          className="absolute top-5 left-5 md:top-6 md:left-6 z-[100] p-2.5 rounded-xl bg-white/50 dark:bg-white/5 text-slate-500 hover:text-cyan-500 hover:bg-white dark:hover:bg-white/10 transition-all duration-300 group/back shadow-sm border border-slate-200 dark:border-white/10 backdrop-blur-md active:scale-90"
           title="Back to Landing"
         >
           <ArrowLeft className="w-5 h-5 group-hover/back:-translate-x-1 transition-transform" />
         </button>
 
-        {/* Glass Reflections */}
+        {/* Glass Reflections Overlay */}
         <div className="absolute inset-0 bg-white/60 dark:bg-white/5 backdrop-blur-3xl z-0 pointer-events-none transition-colors duration-500"></div>
 
         {/* Left Panel - BRANDING (Hidden on Mobile) */}
@@ -115,34 +107,36 @@ const Login = () => {
               </span>
             </div>
             <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-indigo-100 to-purple-200 mb-4 leading-[1.1] drop-shadow-2xl">
-              Welcome <br /> Back.
+              Define your <br /> future.
             </h2>
             <p className="text-indigo-100/80 text-sm leading-relaxed max-w-xs font-medium backdrop-blur-sm p-2 rounded-xl border border-white/5 bg-white/5">
-              Login to access your dashboard, track placements, and connect with
-              faculty.
+              Access exclusive projects, connect with top mentors, and
+              fast-track your career.
             </p>
           </div>
 
           <div className="relative z-10 inline-flex p-4 bg-gradient-to-r from-white/10 to-indigo-500/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center shadow-lg text-white">
-                <LogIn className="w-5 h-5" />
+                <Layers className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-white text-sm">Secure Portal</h4>
-                <p className="text-indigo-200 text-[10px] tracking-wider uppercase">
-                  Student Access
+                <h4 className="font-bold text-white text-sm uppercase tracking-tight">
+                  Ecosystem
+                </h4>
+                <p className="text-indigo-200 text-[9px] tracking-wider uppercase">
+                  Student Portal
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Panel - FORM */}
-        <div className="p-8 md:p-12 flex flex-col justify-center relative z-10 bg-white/40 dark:bg-[#0d1117]/40 transition-colors duration-500 pt-20 md:pt-12">
-          {/* ================= MOBILE BRANDING HEADER ================= */}
-          <div className="flex md:hidden items-center gap-2 mb-10 justify-center">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
+        {/* Right Panel - FORM (Mobile Optimized) */}
+        <div className="p-8 md:p-12 flex flex-col justify-center relative z-10 bg-white/40 dark:bg-[#0d1117]/40 transition-colors duration-500 pt-24 md:pt-12 pb-20 md:pb-12">
+          {/* MOBILE BRANDING LOGO */}
+          <div className="flex md:hidden items-center gap-2 mb-8 justify-center">
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             <span className="font-black text-slate-900 dark:text-white text-sm tracking-[0.2em] uppercase">
@@ -152,27 +146,40 @@ const Login = () => {
 
           <div className="mb-8 text-center md:text-left">
             <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-2 tracking-tight uppercase">
-              Sign In
+              Create Account
             </h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-              Enter your credentials to continue.
+              Use your official college email ID.
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Full Name Input */}
+            <div className="relative group">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors duration-300" />
+              <input
+                name="name"
+                placeholder="Full Name"
+                required
+                onChange={handleChange}
+                className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#13171d]/80 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all duration-300 active:scale-[0.99]"
+              />
+            </div>
+
+            {/* Email Input */}
             <div className="relative group">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors duration-300" />
               <input
                 name="email"
                 type="email"
-                placeholder="Email Address"
+                placeholder="College Email"
                 required
                 onChange={handleChange}
-                className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#13171d]/80 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 focus:bg-white dark:focus:bg-[#1a1f2e] outline-none transition-all duration-300 hover:border-slate-300 dark:hover:border-white/20 active:scale-[0.99]"
+                className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#13171d]/80 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all duration-300 active:scale-[0.99]"
               />
-              <div className="absolute inset-0 rounded-2xl bg-indigo-500/10 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 -z-10"></div>
             </div>
 
+            {/* Password Input */}
             <div className="relative group">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors duration-300" />
               <input
@@ -181,22 +188,22 @@ const Login = () => {
                 placeholder="Password"
                 required
                 onChange={handleChange}
-                className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#13171d]/80 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 focus:bg-white dark:focus:bg-[#1a1f2e] outline-none transition-all duration-300 hover:border-slate-300 dark:hover:border-white/20 active:scale-[0.99]"
+                className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#13171d]/80 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none transition-all duration-300 active:scale-[0.99]"
               />
-              <div className="absolute inset-0 rounded-2xl bg-indigo-500/10 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 -z-10"></div>
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="relative w-full py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-[length:200%_auto] hover:bg-[position:right_center] text-white rounded-2xl font-black text-sm tracking-widest shadow-[0_5px_20px_-5px_rgba(99,102,241,0.4)] hover:shadow-[0_5px_30px_-5px_rgba(99,102,241,0.6)] transition-all duration-500 flex items-center justify-center gap-2 mt-4 disabled:opacity-70 overflow-hidden group/btn active:scale-95 uppercase"
+              className="relative w-full py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-[length:200%_auto] hover:bg-[position:right_center] text-white rounded-2xl font-black text-sm tracking-widest shadow-xl transition-all duration-500 flex items-center justify-center gap-2 mt-4 disabled:opacity-70 group/btn active:scale-95 uppercase"
             >
               <span className="relative z-10 flex items-center gap-2">
                 {loading ? (
-                  "Authenticating..."
+                  "Creating..."
                 ) : (
                   <>
-                    Sign In{" "}
+                    Sign Up{" "}
                     <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                   </>
                 )}
@@ -204,13 +211,14 @@ const Login = () => {
             </button>
           </form>
 
+          {/* SAFE ZONE: pb-20 above ensures the floating theme switch icon doesn't block this link */}
           <p className="text-center text-slate-500 dark:text-slate-400 text-xs mt-10 font-bold uppercase tracking-widest">
-            New to the platform?{" "}
+            Already have an account?{" "}
             <Link
-              to="/signup"
+              to="/login"
               className="text-indigo-600 dark:text-indigo-400 font-black hover:text-indigo-500 dark:hover:text-indigo-300 transition-colors underline-offset-4 hover:underline"
             >
-              Create Account
+              Log In
             </Link>
           </p>
         </div>
@@ -219,4 +227,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;
