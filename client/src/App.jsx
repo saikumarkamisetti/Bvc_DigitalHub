@@ -1,4 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { useState, useEffect, Suspense, lazy } from "react";
 import { ToastContainer } from "react-toastify";
 import { Loader2 } from "lucide-react";
@@ -37,6 +43,17 @@ const AdminJobs = lazy(() => import("./admin/pages/Jobs"));
 const UserDetails = lazy(() => import("./admin/pages/UserDetails"));
 
 /**
+ * ✅ SCROLL TO TOP HELPER
+ */
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
+
+/**
  * ✅ GLOBAL LOADING COMPONENT
  */
 const LoadingOverlay = ({ message = "Loading..." }) => (
@@ -65,6 +82,10 @@ function App() {
 
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // ✅ Read tokens for persistent session handling
+  const token = localStorage.getItem("token");
+  const adminToken = localStorage.getItem("adminToken");
+
   useEffect(() => {
     const html = document.documentElement;
     if (dark) {
@@ -78,6 +99,8 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
+
       <div
         className={`theme-liquid-transition min-h-screen flex flex-col ${
           dark ? "dark bg-[#030407]" : "bg-slate-50"
@@ -114,18 +137,47 @@ function App() {
         />
 
         <Suspense fallback={<LoadingOverlay message="Loading BVC Hub..." />}>
-          {/* Main Content Area */}
           <div className="flex-grow">
             <Routes>
-              {/* PUBLIC ROUTES */}
-              <Route path="/" element={<Landing />} />
-              <Route path="/signup" element={<Signup />} />
+              {/* ================= PUBLIC ================= */}
+              {/* ✅ AUTO-REDIRECT LOGGED IN USERS AWAY FROM LANDING PAGE */}
+              <Route
+                path="/"
+                element={
+                  adminToken ? (
+                    <Navigate to="/admin/dashboard" replace />
+                  ) : token ? (
+                    <Navigate to="/home" replace />
+                  ) : (
+                    <Landing />
+                  )
+                }
+              />
+
+              {/* ✅ PREVENT LOGGED IN USERS FROM SEEING LOGIN/SIGNUP AGAIN */}
+              <Route
+                path="/signup"
+                element={token ? <Navigate to="/home" replace /> : <Signup />}
+              />
+              <Route
+                path="/login"
+                element={token ? <Navigate to="/home" replace /> : <Login />}
+              />
+
               <Route path="/otp" element={<OTP />} />
-              <Route path="/login" element={<Login />} />
               <Route path="/onboarding" element={<Onboarding />} />
 
-              {/* ADMIN ROUTES */}
-              <Route path="/admin/login" element={<AdminLogin />} />
+              {/* ================= ADMIN ================= */}
+              <Route
+                path="/admin/login"
+                element={
+                  adminToken ? (
+                    <Navigate to="/admin/dashboard" replace />
+                  ) : (
+                    <AdminLogin />
+                  )
+                }
+              />
               <Route
                 path="/admin/dashboard"
                 element={
@@ -175,7 +227,7 @@ function App() {
                 }
               />
 
-              {/* SHARED PROTECTED ROUTES */}
+              {/* ================= SHARED ================= */}
               <Route
                 path="/projects/:id"
                 element={
@@ -185,7 +237,7 @@ function App() {
                 }
               />
 
-              {/* USER PROTECTED ROUTES */}
+              {/* ================= USER PROTECTED ================= */}
               <Route
                 path="/home"
                 element={
@@ -268,8 +320,6 @@ function App() {
               />
             </Routes>
           </div>
-
-          {/* FOOTER - Visible on all pages */}
           <Footer />
         </Suspense>
       </div>
