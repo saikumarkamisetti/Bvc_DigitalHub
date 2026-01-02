@@ -3,23 +3,26 @@
 @tailwind utilities;
 
 @layer base {
-  /* 0. SMOOTH SCROLLING CORE FIX */
+  /* 0. CORE SMOOTHING & GPU ACCELERATION */
   html {
     scroll-behavior: smooth !important;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
-
-  /* 1. GLOBAL COLORS & TEXT VISIBILITY */
-  body {
-    @apply bg-slate-50 text-slate-900 transition-colors duration-500;
-    @apply dark:bg-[#05070a] dark:text-slate-100;
-    /* Prevents layout jumping on load */
-    min-height: 100vh;
+    /* Prevents layout shifts during fast scrolling */
     overflow-x: hidden;
   }
 
-  /* 2. ADAPTIVE SCROLLBAR */
+  body {
+    @apply bg-slate-50 text-slate-900;
+    @apply dark:bg-[#05070a] dark:text-slate-100;
+    min-height: 100vh;
+    /* Hardware acceleration for the entire viewport */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* 1. ADAPTIVE SCROLLBAR */
   :root {
     scrollbar-color: #cbd5e1 #f1f5f9;
     scrollbar-width: thin;
@@ -48,7 +51,7 @@
     border-color: #05070a;
   }
 
-  /* 3. TEXT GLOW GRADIENT */
+  /* 2. TEXT GLOW GRADIENT */
   .text-glow-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-cyan-400 to-indigo-500;
     filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.3));
@@ -62,7 +65,7 @@
     }
   }
 
-  /* 4. AUTOFILL FIX */
+  /* 3. AUTOFILL FIX */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
@@ -90,7 +93,7 @@
 }
 
 @layer components {
-  /* 5. SHARED INPUT */
+  /* 4. SHARED INPUT */
   .input {
     @apply w-full p-4 rounded-xl border outline-none;
     @apply border-slate-200 dark:border-slate-800;
@@ -115,8 +118,10 @@
 /* =============== OPTIMIZED LIQUID TRANSITION ============== */
 /* ========================================================= */
 
-/* We explicitly exclude 'transform' and 'scroll-behavior' from the 1.2s transition 
-   to ensure the browser never "lags" during a scroll action. */
+/* FIX: Transitions are only applied to high-level containers.
+   We explicitly REMOVE transform and opacity from the long transition 
+   to keep scrolling smooth.
+*/
 .theme-liquid-transition,
 .theme-liquid-transition main,
 .theme-liquid-transition section,
@@ -124,20 +129,28 @@
 .theme-liquid-transition .bg-white,
 .theme-liquid-transition .dark\:bg-black {
   transition: background-color 1.2s cubic-bezier(0.4, 0, 0.2, 1),
-    color 1.2s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.8s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 1.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  /* GPU Acceleration */
+  /* Tell GPU to handle these layers */
   will-change: background-color, color;
+  contain: paint;
 }
 
-/* Common UI elements must stay fast (0.2s) for a premium feel */
+/* CRITICAL: Stop the "snappy" lag by forcing 0s transition for 
+   scrolling elements during fast movement.
+*/
+.theme-liquid-transition * {
+  transition-property: background-color, color, border-color;
+}
+
+/* UI interactions must stay instantaneous */
 .theme-liquid-transition button,
 .theme-liquid-transition a,
 .theme-liquid-transition input,
 .theme-liquid-transition .input,
 .theme-liquid-transition svg,
 .theme-liquid-transition [class*="shadow-"] {
-  transition: all 0.2s ease-in-out !important;
+  transition: all 0.15s ease-out !important;
 }
 
 /* ========================================================= */
@@ -180,10 +193,11 @@
   cursor: pointer;
 }
 
+/* Fast scrolling friendly animations */
 @keyframes fade-in-up {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(15px);
   }
   to {
     opacity: 1;
@@ -191,21 +205,7 @@
   }
 }
 
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
 .animate-fade-in-up {
-  animation: fade-in-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.animate-scale-in {
-  animation: scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: fade-in-up 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  will-change: transform, opacity;
 }
