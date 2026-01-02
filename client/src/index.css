@@ -4,7 +4,6 @@
 
 @layer base {
   /* 1. GLOBAL COLORS & TEXT VISIBILITY */
-  /* This ensures all text is visible by default in both modes */
   body {
     @apply bg-slate-50 text-slate-900 transition-colors duration-500;
     @apply dark:bg-[#05070a] dark:text-slate-100;
@@ -53,9 +52,7 @@
     }
   }
 
-  /* 4. AUTOFILL FIX - REFINED */
-
-  /* Default / Dark Mode (Mobile-first or Dark-first) */
+  /* 4. AUTOFILL FIX */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
@@ -63,14 +60,12 @@
   textarea:-webkit-autofill:hover,
   textarea:-webkit-autofill:focus,
   select:-webkit-autofill {
-    /* Using a very large inset shadow to cover the browser default background */
     -webkit-box-shadow: 0 0 0px 1000px #0d1117 inset !important;
     -webkit-text-fill-color: #ffffff !important;
-    transition: background-color 5000s ease-in-out 0s; /* Prevents the bg from flickering back */
+    transition: background-color 5000s ease-in-out 0s;
     caret-color: #ffffff !important;
   }
 
-  /* Light Mode Override */
   html:not(.dark) input:-webkit-autofill,
   html:not(.dark) input:-webkit-autofill:hover,
   html:not(.dark) input:-webkit-autofill:focus,
@@ -93,10 +88,9 @@
     @apply text-slate-900 dark:text-white;
     @apply placeholder:text-slate-400 dark:placeholder:text-slate-500;
     @apply focus:ring-2 focus:ring-indigo-500/50;
-    transition: all 0.2s ease-in-out; /* Normal speed for interaction */
+    transition: all 0.2s ease-in-out;
   }
 
-  /* DROPDOWN MENU FIX */
   .input option {
     @apply bg-white text-slate-900;
   }
@@ -108,35 +102,29 @@
 }
 
 /* ========================================================= */
-/* =============== LIQUID THEME TRANSITION ================= */
+/* =============== OPTIMIZED LIQUID TRANSITION ============== */
 /* ========================================================= */
 
-/* Fix: Added 'select' and 'option' to exclusion to prevent laggy dropdowns */
-.theme-liquid-transition
-  *:not(:hover):not(svg):not(path):not(select):not(option),
-.theme-liquid-transition *::before,
-.theme-liquid-transition *::after {
+/* Instead of using (*), we target only high-level containers for the slow transition */
+.theme-liquid-transition,
+.theme-liquid-transition main,
+.theme-liquid-transition section,
+.theme-liquid-transition .bg-card,
+.theme-liquid-transition .bg-white,
+.theme-liquid-transition .dark\:bg-black {
   transition: background-color 1.2s cubic-bezier(0.4, 0, 0.2, 1),
     color 1.2s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 1.2s cubic-bezier(0.4, 0, 0.2, 1),
-    stroke 1.2s cubic-bezier(0.4, 0, 0.2, 1),
-    fill 1.2s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border-color 1.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Normal fast speed for all interactions (Hover, Focus, Icons, Buttons) */
-.theme-liquid-transition *:hover,
-.theme-liquid-transition *:hover *,
+/* Ensure common UI elements like buttons and icons ignore the slow transition */
 .theme-liquid-transition button,
 .theme-liquid-transition a,
+.theme-liquid-transition input,
+.theme-liquid-transition .input,
 .theme-liquid-transition svg,
-.theme-liquid-transition path {
-  transition: all 0.2s ease-in-out !important;
-}
-
-/* Fix: Shadows must always be fast to prevent "ghosting" effects */
 .theme-liquid-transition [class*="shadow-"] {
-  transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out !important;
+  transition: all 0.2s ease-in-out !important;
 }
 
 /* ========================================================= */
@@ -174,7 +162,6 @@
   animation: heartPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* ===== Dark mode date picker icon fix ===== */
 .dark input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(1) brightness(1.2);
   cursor: pointer;
@@ -208,8 +195,4 @@
 
 .animate-scale-in {
   animation: scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
 }
