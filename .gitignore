@@ -1,1 +1,7 @@
+# Local env files
 .env
+.env.local
+.env.*.local
+
+# Do not ignore the template file (optional but recommended)
+!.env.example
